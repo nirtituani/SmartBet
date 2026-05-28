@@ -1,0 +1,33 @@
+/Users/nirtituani/Downloads/SmartBet/backend/venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:208: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+============================= test session starts ==============================
+platform darwin -- Python 3.11.15, pytest-8.3.3, pluggy-1.6.0 -- /Users/nirtituani/Downloads/SmartBet/backend/venv/bin/python3.11
+cachedir: .pytest_cache
+rootdir: /Users/nirtituani/Downloads/SmartBet/backend
+configfile: pytest.ini
+testpaths: tests
+plugins: asyncio-0.24.0, anyio-4.13.0
+asyncio: mode=Mode.AUTO, default_loop_scope=None
+collecting ... collected 17 items
+
+tests/test_ai_service.py::test_mock_prediction_returns_valid_prediction PASSED [  5%]
+tests/test_ai_service.py::test_get_prediction_without_api_key_uses_mock PASSED [ 11%]
+tests/test_ai_service.py::test_prediction_score_is_non_negative PASSED   [ 17%]
+tests/test_cache.py::test_get_missing_returns_none PASSED                [ 23%]
+tests/test_cache.py::test_set_then_get_returns_value PASSED              [ 29%]
+tests/test_cache.py::test_expired_entry_returns_none PASSED              [ 35%]
+tests/test_football_api.py::test_get_upcoming_matches_returns_8 PASSED   [ 41%]
+tests/test_football_api.py::test_all_matches_are_match_instances PASSED  [ 47%]
+tests/test_football_api.py::test_match_ids_are_sequential PASSED         [ 52%]
+tests/test_football_api.py::test_odds_are_realistic PASSED               [ 58%]
+tests/test_football_api.py::test_get_match_detail_returns_detail_for_valid_id PASSED [ 64%]
+tests/test_football_api.py::test_get_match_detail_returns_none_for_invalid_id PASSED [ 70%]
+tests/test_football_api.py::test_mock_data_is_deterministic PASSED       [ 76%]
+tests/test_matches_endpoint.py::test_health PASSED                       [ 82%]
+tests/test_matches_endpoint.py::test_upcoming_matches_returns_8 PASSED   [ 88%]
+tests/test_matches_endpoint.py::test_match_predictions_valid_id PASSED   [ 94%]
+tests/test_matches_endpoint.py::test_match_predictions_invalid_id PASSED [100%]
+
+============================== 17 passed in 0.03s ==============================

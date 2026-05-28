@@ -4,6 +4,8 @@ import { fetchUpcomingMatches, groupMatchesByDate, formatDate } from '@/lib/api'
 import type { Match } from '@/lib/types';
 import './match-explorer.css';
 
+export const dynamic = 'force-dynamic';
+
 function MatchCard({ match }: { match: Match }) {
   return (
     <Link href={`/match/${match.id}`} className="match-card glass-card">
