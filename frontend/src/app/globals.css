@@ -1,0 +1,88 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --bg-primary: #080d1a;
+  --bg-secondary: #0c1225;
+  --bg-card: rgba(12, 18, 37, 0.85);
+  --border-subtle: rgba(99, 179, 237, 0.12);
+  --border-neon-blue: rgba(99, 179, 237, 0.6);
+  --border-neon-gold: rgba(246, 201, 14, 0.7);
+  --neon-blue: #63b3ed;
+  --neon-blue-glow: rgba(99, 179, 237, 0.25);
+  --neon-gold: #f6c90e;
+  --neon-gold-glow: rgba(246, 201, 14, 0.2);
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #4a5568;
+  --accent-blue: #4299e1;
+  --win: #48bb78;
+  --draw: #f6c90e;
+  --loss: #fc8181;
+  --green-highlight: rgba(72, 187, 120, 0.2);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 16px; }
+
+body {
+  background-color: var(--bg-primary);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(99, 179, 237, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 80% 80%, rgba(66, 153, 225, 0.03) 0%, transparent 50%);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; text-decoration: none; }
+
+.glass-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+}
+
+.glass-card-blue {
+  border-color: var(--border-neon-blue);
+  box-shadow: 0 0 24px var(--neon-blue-glow), inset 0 1px 0 rgba(99, 179, 237, 0.1);
+}
+
+.glass-card-gold {
+  border-color: var(--border-neon-gold);
+  box-shadow: 0 0 32px var(--neon-gold-glow), 0 0 64px rgba(246, 201, 14, 0.08),
+              inset 0 1px 0 rgba(246, 201, 14, 0.15);
+}
+
+.badge-win  { background: rgba(72, 187, 120, 0.15); color: var(--win);  border: 1px solid rgba(72,187,120,0.3); }
+.badge-draw { background: rgba(246,201,14,0.12);    color: var(--draw); border: 1px solid rgba(246,201,14,0.3);}
+.badge-loss { background: rgba(252,129,129,0.12);   color: var(--loss); border: 1px solid rgba(252,129,129,0.3);}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+@keyframes pulse-blue {
+  0%, 100% { box-shadow: 0 0 12px var(--neon-blue-glow); }
+  50%       { box-shadow: 0 0 28px rgba(99, 179, 237, 0.5); }
+}
+
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: 0 0 24px var(--neon-gold-glow), 0 0 48px rgba(246,201,14,0.06); }
+  50%       { box-shadow: 0 0 40px rgba(246,201,14,0.35), 0 0 80px rgba(246,201,14,0.12); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
