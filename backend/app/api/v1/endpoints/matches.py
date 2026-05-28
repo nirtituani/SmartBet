@@ -13,8 +13,8 @@ async def upcoming_matches():
     cached = await get_cached("upcoming_matches")
     if cached:
         return [Match(**m) for m in cached]
-    matches = get_upcoming_matches()
-    await set_cached("upcoming_matches", [m.model_dump() for m in matches], ttl=300)
+    matches = await get_upcoming_matches()
+    await set_cached("upcoming_matches", [m.model_dump() for m in matches], ttl=21600)
     return matches
 
 
@@ -25,12 +25,12 @@ async def match_predictions(fixture_id: int):
     if cached:
         return MatchDetail(**cached)
 
-    detail = get_match_detail(fixture_id)
+    detail = await get_match_detail(fixture_id)
     if detail is None:
         raise HTTPException(status_code=404, detail="Match not found")
 
     detail.prediction = await get_prediction(
         detail.match, detail.home_form, detail.away_form, detail.h2h, detail.odds_comparison
     )
-    await set_cached(cache_key, detail.model_dump(), ttl=600)
+    await set_cached(cache_key, detail.model_dump(), ttl=21600)
     return detail

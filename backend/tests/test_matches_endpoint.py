@@ -1,6 +1,12 @@
 import pytest
 
 
+@pytest.fixture(autouse=True)
+def use_mock_data(monkeypatch):
+    from app.core import config
+    monkeypatch.setattr(config.settings, "football_api_key", "")
+
+
 @pytest.mark.asyncio
 async def test_health(client):
     r = await client.get("/health")

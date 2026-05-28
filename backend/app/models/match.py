@@ -8,6 +8,7 @@ class Team(BaseModel):
     name: str
     flag: str
     fifa_rank: int
+    api_id: int = 0    # API-Football team ID (0 = mock/unknown)
 
 
 class FormResult(BaseModel):

@@ -4,8 +4,15 @@ from app.services.football_api import get_match_detail
 from app.services.ai_service import get_prediction, _mock_prediction
 
 
-def test_mock_prediction_returns_valid_prediction():
-    detail = get_match_detail(1)
+@pytest.fixture(autouse=True)
+def use_mock_data(monkeypatch):
+    from app.core import config
+    monkeypatch.setattr(config.settings, "football_api_key", "")
+
+
+@pytest.mark.asyncio
+async def test_mock_prediction_returns_valid_prediction():
+    detail = await get_match_detail(1)
     pred = _mock_prediction(detail.match)
     assert isinstance(pred, AIPrediction)
     assert 0 <= pred.confidence_percentage <= 100
@@ -17,7 +24,7 @@ def test_mock_prediction_returns_valid_prediction():
 async def test_get_prediction_without_api_key_uses_mock(monkeypatch):
     from app.core import config
     monkeypatch.setattr(config.settings, "anthropic_api_key", "")
-    detail = get_match_detail(1)
+    detail = await get_match_detail(1)
     pred = await get_prediction(
         detail.match, detail.home_form, detail.away_form, detail.h2h, detail.odds_comparison
     )
@@ -28,7 +35,7 @@ async def test_get_prediction_without_api_key_uses_mock(monkeypatch):
 async def test_prediction_score_is_non_negative(monkeypatch):
     from app.core import config
     monkeypatch.setattr(config.settings, "anthropic_api_key", "")
-    detail = get_match_detail(1)
+    detail = await get_match_detail(1)
     pred = await get_prediction(
         detail.match, detail.home_form, detail.away_form, detail.h2h, detail.odds_comparison
     )
