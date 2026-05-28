@@ -167,3 +167,190 @@
 }
 
 .h2h-row__date { font-size: 10px; color: var(--text-muted); }
+
+/* Odds Table */
+.odds-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.odds-table th {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 0 8px 12px 8px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.odds-table__bookie-col { text-align: left; }
+
+.odds-table td {
+  text-align: center;
+  padding: 10px 8px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  transition: background 0.1s;
+}
+
+.odds-table td.odds-table__bookie {
+  text-align: left;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.odds-table__best {
+  color: var(--win) !important;
+  font-weight: 700;
+  background: var(--green-highlight);
+  border-radius: 4px;
+}
+
+.odds-table tr:last-child td { border-bottom: none; }
+
+/* AI Prediction card */
+.ai-card {
+  padding: 24px;
+  animation: pulse-gold 3s ease-in-out infinite;
+}
+
+.ai-card__label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--neon-gold);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ai-card__label::before {
+  content: '';
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--neon-gold);
+  box-shadow: 0 0 8px var(--neon-gold);
+}
+
+.ai-card__score {
+  font-size: 52px;
+  font-weight: 900;
+  letter-spacing: -2px;
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: 4px;
+  line-height: 1;
+}
+
+.ai-card__outcome {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--neon-gold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.ai-card__confidence-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.ai-card__confidence-label span:last-child {
+  font-weight: 700;
+  color: var(--neon-gold);
+}
+
+.confidence-bar {
+  height: 6px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.confidence-bar__fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--neon-gold) 0%, #f97316 100%);
+  box-shadow: 0 0 8px rgba(246, 201, 14, 0.5);
+  transition: width 0.6s ease;
+}
+
+.ai-card__analysis {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.ai-card__factors {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.ai-card__factor {
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding-left: 14px;
+  position: relative;
+  line-height: 1.5;
+}
+
+.ai-card__factor::before {
+  content: '›';
+  position: absolute;
+  left: 0;
+  color: var(--neon-blue);
+  font-weight: 700;
+}
+
+.ai-card__value-bet {
+  background: rgba(246, 201, 14, 0.08);
+  border: 1px solid rgba(246, 201, 14, 0.2);
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.ai-card__value-bet-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--neon-gold);
+  margin-bottom: 4px;
+}
+
+.ai-card__value-bet-rec {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.ai-card__value-bet-odds {
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--neon-gold);
+  letter-spacing: -0.5px;
+}
+
+.ai-card__value-bet-rational {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 6px;
+  line-height: 1.4;
+}

@@ -2,6 +2,8 @@ import Link from 'next/link';
 import Header from '@/components/Header';
 import TeamForm from '@/components/TeamForm';
 import H2HHistory from '@/components/H2HHistory';
+import OddsTable from '@/components/OddsTable';
+import AIPrediction from '@/components/AIPrediction';
 import { fetchMatchDetail } from '@/lib/api';
 import './match-intelligence.css';
 
@@ -12,7 +14,7 @@ export default async function MatchIntelligencePage({
 }) {
   const { id } = await params;
   const detail = await fetchMatchDetail(id);
-  const { match, home_form, away_form, h2h } = detail;
+  const { match, home_form, away_form, h2h, odds_comparison, prediction } = detail;
 
   return (
     <>
@@ -41,10 +43,9 @@ export default async function MatchIntelligencePage({
           <TeamForm teamName={match.away_team.name} teamFlag={match.away_team.flag} form={away_form} />
         </div>
 
-        {/* Bottom row: filled in Task 12 */}
         <div className="intel__bottom-row">
-          <div className="glass-card info-card" />
-          <div className="glass-card info-card" />
+          <OddsTable odds={odds_comparison} />
+          {prediction && <AIPrediction prediction={prediction} />}
         </div>
       </main>
     </>
