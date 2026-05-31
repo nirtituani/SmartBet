@@ -4,7 +4,7 @@ import re
 import anthropic
 
 from app.core.config import settings
-from app.models.match import AIPrediction, BookmakerOdds, FormResult, H2HResult, Match, ProjectedScore, ValueBet
+from app.models.match import AIPrediction, BookmakerOdds, FormResult, H2HResult, Match, MatchLineup, Player, ProjectedScore, TeamLineup, ValueBet
 
 _FORM_PROMPT = """List {team} national football team's 5 most recent international match results. Include matches from 2022-2025 (World Cups, Nations League, qualifiers, friendlies).
 
@@ -282,8 +282,7 @@ Return ONLY valid JSON, no markdown:
 }}"""
 
 
-async def get_lineup(home_name: str, away_name: str) -> "MatchLineup | None":
-    from app.models.match import MatchLineup, TeamLineup, Player
+async def get_lineup(home_name: str, away_name: str) -> MatchLineup | None:
     if not settings.anthropic_api_key:
         return None
     text = await _claude_ask(_LINEUP_PROMPT.format(home=home_name, away=away_name))
@@ -304,5 +303,6 @@ async def get_lineup(home_name: str, away_name: str) -> "MatchLineup | None":
                 starters=[Player(**p) for p in data["away"]["starters"]],
             ),
         )
-    except Exception:
+    except Exception as e:
+        print(f"[AI] lineup failed: {e}")
         return None
