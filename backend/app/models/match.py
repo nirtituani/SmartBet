@@ -19,6 +19,7 @@ class FormResult(BaseModel):
     score_away: int
     result: Literal["W", "D", "L"]
     home_or_away: Literal["H", "A"]
+    tournament: str = ""
 
 
 class H2HResult(BaseModel):
@@ -29,6 +30,21 @@ class H2HResult(BaseModel):
     away_flag: str
     home_score: int
     away_score: int
+    tournament: str = ""
+
+
+class StandingRow(BaseModel):
+    name: str
+    flag: str
+    fifa_rank: int
+    mp: int
+    w: int
+    d: int
+    l: int
+    gf: int
+    ga: int
+    gd: int
+    pts: int
 
 
 class BookmakerOdds(BaseModel):
@@ -67,7 +83,29 @@ class AIPrediction(BaseModel):
     confidence_percentage: int
     tactical_analysis: str
     key_factors: list[str]
+    additional_context: str = ""
     value_bet: ValueBet
+
+
+class ScoreOdd(BaseModel):
+    score: str
+    odds: float
+
+
+class Player(BaseModel):
+    name: str
+    position: str  # e.g. "GK", "CB", "LB", "RB", "CM", "CAM", "LW", "RW", "ST"
+
+
+class TeamLineup(BaseModel):
+    formation: str  # e.g. "4-3-3"
+    starters: list[Player]
+
+
+class MatchLineup(BaseModel):
+    home: TeamLineup
+    away: TeamLineup
+    is_predicted: bool = True
 
 
 class MatchDetail(BaseModel):
@@ -76,4 +114,6 @@ class MatchDetail(BaseModel):
     away_form: list[FormResult]
     h2h: list[H2HResult]
     odds_comparison: list[BookmakerOdds]
+    exact_scores: list[ScoreOdd] = []
     prediction: AIPrediction | None = None
+    lineup: MatchLineup | None = None
