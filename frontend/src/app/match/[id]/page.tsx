@@ -12,6 +12,7 @@ export default async function MatchIntelligencePage({
 }) {
   const { id } = await params;
   const detail = await fetchMatchDetail(id).catch(() => null);
+  if (!detail) return <><Header /><p style={{ color: 'white', padding: '2rem' }}>Match not available.</p></>;
   return (
     <>
       <Header />
