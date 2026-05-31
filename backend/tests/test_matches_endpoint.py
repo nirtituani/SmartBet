@@ -19,8 +19,8 @@ async def test_upcoming_matches_returns_8(client):
     r = await client.get("/api/v1/matches/upcoming")
     assert r.status_code == 200
     data = r.json()
-    assert len(data) == 8
-    assert data[0]["home_team"]["name"] == "Brazil"
+    assert len(data) == 72
+    assert data[0]["home_team"]["name"] == "Mexico"
 
 
 @pytest.mark.asyncio

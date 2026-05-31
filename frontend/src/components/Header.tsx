@@ -2,16 +2,22 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { t } from '@/lib/i18n';
 import './Header.css';
-
-const NAV_LINKS = [
-  { href: '/match-explorer', label: 'Match Explorer' },
-  { href: '/live-odds',      label: 'Live Odds' },
-  { href: '/stats',          label: 'Stats' },
-];
 
 export default function Header() {
   const pathname = usePathname();
+  const { lang, setLang } = useLanguage();
+  const tr = t[lang].nav;
+
+  const NAV_LINKS = [
+    { href: '/match-explorer', label: tr.matchExplorer },
+    { href: '/groups',         label: tr.groups },
+    { href: '/bracket',        label: tr.bracket },
+    { href: '/live-odds',      label: tr.liveOdds },
+    { href: '/stats',          label: tr.stats },
+  ];
 
   return (
     <header className="header">
@@ -29,6 +35,17 @@ export default function Header() {
           ))}
         </nav>
         <div className="header__actions">
+          <div className="header__lang-toggle">
+            <button
+              className={`header__lang-btn${lang === 'en' ? ' header__lang-btn--active' : ''}`}
+              onClick={() => setLang('en')}
+            >EN</button>
+            <span className="header__lang-sep">|</span>
+            <button
+              className={`header__lang-btn${lang === 'he' ? ' header__lang-btn--active' : ''}`}
+              onClick={() => setLang('he')}
+            >HE</button>
+          </div>
           <button className="header__icon-btn" aria-label="Search">🔍</button>
           <button className="header__icon-btn" aria-label="Notifications">🔔</button>
           <div className="header__avatar" aria-label="Profile">U</div>

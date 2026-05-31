@@ -33,14 +33,25 @@
   margin-bottom: 32px;
 }
 
+.explorer__date-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 0 4px;
+}
+
 .explorer__date-label {
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-muted);
-  margin-bottom: 12px;
-  padding-left: 4px;
+}
+
+.explorer__date-label--hebrew {
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .match-card {
@@ -105,11 +116,3 @@
   text-transform: uppercase;
 }
 
-.match-card__odds {
-  font-size: 13px;
-  color: var(--text-secondary);
-  font-weight: 500;
-  white-space: nowrap;
-  min-width: 120px;
-  text-align: right;
-}

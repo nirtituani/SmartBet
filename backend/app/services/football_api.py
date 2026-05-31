@@ -831,7 +831,7 @@ async def get_match_detail(fixture_id: int) -> MatchDetail | None:
             if h2h_cached is not None:
                 await set_cached(h2h_key, h2h_cached, ttl=_H2H_TTL)
 
-        lineup_key = f"lineup:{fixture_id}"
+        lineup_key = f"lineup_v2:{fixture_id}"
         lineup_raw = await get_cached(lineup_key)
         if lineup_raw is None:
             lineup_obj = await get_lineup(home_name, away_name)

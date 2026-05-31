@@ -1,0 +1,211 @@
+'use client';
+
+import { useLanguage } from '@/contexts/LanguageContext';
+import { translateTeam } from '@/lib/i18n';
+import type { Lang } from '@/lib/i18n';
+
+type TeamData = { name: string; flag: string };
+type Slot = { label: string; team: TeamData | null };
+type BracketMatch = { top: Slot; bottom: Slot };
+interface Props { standings: Record<string, (TeamData | null)[]> }
+
+// Layout constants
+const SLOT_H = 54;          // height of one R32 slot
+const CARD_W = 144;         // match card width
+const CARD_H = 46;          // match card height (2 rows + divider)
+const CONN_W = 28;          // connector SVG width
+const FINAL_CONN_W = 40;    // connector to/from final
+const TOTAL_H = 8 * SLOT_H; // 432px
+
+// Vertical center of match i in round r (0=R32 … 3=SF)
+function cy(r: number, i: number) {
+  const m = Math.pow(2, r);
+  return i * SLOT_H * m + (SLOT_H * m) / 2;
+}
+
+// Official WC 2026 R32 bracket seeds
+const LEFT_SEEDS: [string, string][] = [
+  ['1E', '3ABCDF'], ['1I', '3CDFGH'],
+  ['2A', '2B'],     ['1F', '2C'],
+  ['2K', '2L'],     ['1H', '2J'],
+  ['1D', '3BEFIJ'], ['1G', '3AEHIJ'],
+];
+const RIGHT_SEEDS: [string, string][] = [
+  ['1C', '2F'],      ['2E', '2I'],
+  ['1A', '3CEFHI'],  ['1L', '3EHIJK'],
+  ['1J', '2H'],      ['2D', '2G'],
+  ['1B', '3EFGIJ'],  ['1K', '3DEIJL'],
+];
+
+const ROUND_LABELS = ['Round of 32', 'Round of 16', 'Quarter Finals', 'Semi Finals'];
+
+function makeSlot(label: string, standings: Record<string, (TeamData | null)[]>): Slot {
+  if (!label.startsWith('3') && label.length === 2) {
+    const pos = parseInt(label[0]) - 1;
+    return { label, team: standings[label[1]]?.[pos] ?? null };
+  }
+  return { label, team: null };
+}
+
+const TBD: BracketMatch = {
+  top:    { label: 'TBD', team: null },
+  bottom: { label: 'TBD', team: null },
+};
+const tbds = (n: number): BracketMatch[] => Array(n).fill(TBD);
+
+// ── Sub-components ────────────────────────────────────────────────────────────
+
+function TeamRow({ s, lang }: { s: Slot; lang: Lang }) {
+  if (s.team) return (
+    <div className="bk-team">
+      <span className="bk-flag">{s.team.flag}</span>
+      <span className="bk-name">{translateTeam(s.team.name, lang)}</span>
+    </div>
+  );
+  return (
+    <div className="bk-team bk-team--tbd">
+      <span className="bk-seed">{s.label}</span>
+    </div>
+  );
+}
+
+function MatchCard({ m, centerY, lang }: { m: BracketMatch; centerY: number; lang: Lang }) {
+  return (
+    <div className="bk-card" style={{ top: centerY - CARD_H / 2, width: CARD_W }}>
+      <TeamRow s={m.top} lang={lang} />
+      <div className="bk-sep" />
+      <TeamRow s={m.bottom} lang={lang} />
+    </div>
+  );
+}
+
+function RoundCol({ matches, round, lang, label }: {
+  matches: BracketMatch[]; round: number; lang: Lang; label?: string;
+}) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
+      {label && <div className="bk-round-label">{label}</div>}
+      <div style={{ width: CARD_W, height: TOTAL_H, position: 'relative', flexShrink: 0 }}>
+        {matches.map((m, i) => (
+          <MatchCard key={i} m={m} centerY={cy(round, i)} lang={lang} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Connector({ fromRound, flip, color }: { fromRound: number; flip?: boolean; color?: string }) {
+  const pairs = (8 / Math.pow(2, fromRound)) / 2;
+  const mid = CONN_W / 2;
+  const stroke = color ?? 'rgba(99,179,237,0.3)';
+
+  const lines: { x1: number; y1: number; x2: number; y2: number; key: string }[] = [];
+  for (let i = 0; i < pairs; i++) {
+    const uY = cy(fromRound, i * 2);
+    const lY = cy(fromRound, i * 2 + 1);
+    const nY = cy(fromRound + 1, i);
+    lines.push(
+      { key: `u${i}`, x1: 0, y1: uY, x2: mid, y2: uY },
+      { key: `l${i}`, x1: 0, y1: lY, x2: mid, y2: lY },
+      { key: `v${i}`, x1: mid, y1: uY, x2: mid, y2: lY },
+      { key: `e${i}`, x1: mid, y1: nY, x2: CONN_W, y2: nY },
+    );
+  }
+
+  return (
+    <svg
+      width={CONN_W} height={TOTAL_H}
+      style={{ display: 'block', flexShrink: 0, transform: flip ? 'scaleX(-1)' : undefined }}
+    >
+      {lines.map(({ key, ...p }) => (
+        <line key={key} stroke={stroke} strokeWidth={1} fill="none" {...p} />
+      ))}
+    </svg>
+  );
+}
+
+function FinalConnector({ flip }: { flip?: boolean }) {
+  const sfY = cy(3, 0); // 216
+  return (
+    <svg
+      width={FINAL_CONN_W} height={TOTAL_H}
+      style={{ display: 'block', flexShrink: 0, transform: flip ? 'scaleX(-1)' : undefined }}
+    >
+      <line
+        x1={0} y1={sfY} x2={FINAL_CONN_W} y2={sfY}
+        stroke="rgba(246,201,14,0.5)" strokeWidth={1.5} fill="none"
+      />
+    </svg>
+  );
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
+
+export default function BracketClient({ standings }: Props) {
+  const { lang } = useLanguage();
+  const l = lang as Lang;
+
+  const leftR32 = LEFT_SEEDS.map(([a, b]) => ({
+    top: makeSlot(a, standings), bottom: makeSlot(b, standings),
+  }));
+  const rightR32 = RIGHT_SEEDS.map(([a, b]) => ({
+    top: makeSlot(a, standings), bottom: makeSlot(b, standings),
+  }));
+
+  const isHe = lang === 'he';
+
+  return (
+    <main className="bracket-page">
+      <p className="bracket-page__breadcrumb">
+        {isHe ? 'בית / עץ טורניר' : 'Home / Bracket'}
+      </p>
+      <h1 className="bracket-page__title">
+        {isHe ? 'שלבי הנוקאאוט — גביע העולם 2026' : 'Knockout Stage — FIFA World Cup 2026'}
+      </h1>
+
+      <div className="bracket-scroll">
+        <div className="bracket-track">
+
+          {/* ── Left half (R32 → SF) ── */}
+          {[0, 1, 2, 3].map(r => (
+            <div key={`L${r}`} style={{ display: 'flex', alignItems: 'flex-start' }}>
+              <RoundCol
+                matches={r === 0 ? leftR32 : tbds(8 / Math.pow(2, r))}
+                round={r}
+                lang={l}
+                label={ROUND_LABELS[r]}
+              />
+              {r < 3 && <Connector fromRound={r} />}
+            </div>
+          ))}
+
+          {/* ── Final area ── */}
+          <FinalConnector />
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div className="bk-round-label bk-round-label--final">
+              {isHe ? 'גמר' : 'Final'}
+            </div>
+            <div style={{ width: CARD_W, height: TOTAL_H, position: 'relative' }}>
+              <MatchCard m={TBD} centerY={TOTAL_H / 2} lang={l} />
+            </div>
+          </div>
+          <FinalConnector flip />
+
+          {/* ── Right half (SF → R32) ── */}
+          {[3, 2, 1, 0].map(r => (
+            <div key={`R${r}`} style={{ display: 'flex', alignItems: 'flex-start' }}>
+              {r < 3 && <Connector fromRound={r} flip />}
+              <RoundCol
+                matches={r === 0 ? rightR32 : tbds(8 / Math.pow(2, r))}
+                round={r}
+                lang={l}
+                label={ROUND_LABELS[r]}
+              />
+            </div>
+          ))}
+
+        </div>
+      </div>
+    </main>
+  );
+}

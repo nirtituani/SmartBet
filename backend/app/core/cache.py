@@ -42,3 +42,15 @@ async def set_cached(key: str, value: Any, ttl: int) -> None:
         finally:
             await r.aclose()
     _mem[key] = (value, time.time() + ttl)
+
+
+async def delete_cached(key: str) -> None:
+    if _redis_available:
+        r = aioredis.from_url(settings.redis_url, decode_responses=True, socket_connect_timeout=1)
+        try:
+            await r.delete(key)
+        except Exception:
+            pass
+        finally:
+            await r.aclose()
+    _mem.pop(key, None)

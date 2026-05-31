@@ -5,7 +5,7 @@ interface Props {
 }
 
 export default function AIPrediction({ prediction }: Props) {
-  const { projected_score, confidence_percentage, tactical_analysis, key_factors, value_bet } = prediction;
+  const { projected_score, confidence_percentage, tactical_analysis, key_factors, additional_context, value_bet } = prediction;
 
   return (
     <div className="ai-card glass-card glass-card-gold">
@@ -31,6 +31,10 @@ export default function AIPrediction({ prediction }: Props) {
           <p key={i} className="ai-card__factor">{f}</p>
         ))}
       </div>
+
+      {additional_context && (
+        <p className="ai-card__analysis ai-card__additional-context">{additional_context}</p>
+      )}
 
       <div className="ai-card__value-bet">
         <div className="ai-card__value-bet-label">Value Bet Recommendation</div>

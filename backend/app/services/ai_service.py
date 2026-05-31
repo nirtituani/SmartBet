@@ -55,15 +55,19 @@ def _extract_json_array(text: str) -> list | None:
     return None
 
 
-async def _claude_ask(prompt: str) -> str | None:
+async def _claude_ask(
+    prompt: str,
+    model: str = "claude-haiku-4-5-20251001",
+    max_tokens: int = 512,
+) -> str | None:
     """Ask Claude using training knowledge only (no web search, low token cost)."""
     if not settings.anthropic_api_key:
         return None
     client = anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
     try:
         response = await client.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=512,
+            model=model,
+            max_tokens=max_tokens,
             messages=[{"role": "user", "content": prompt}],
         )
         return "".join(
@@ -240,7 +244,15 @@ async def get_prediction(
         return _mock_prediction(match)
 
 
-_LINEUP_PROMPT = """Predict the most likely starting XI and formation for both teams in this FIFA World Cup 2026 match. Use your full knowledge of each squad's typical manager formation and first-choice players as of 2025/2026.
+_LINEUP_PROMPT = """Predict the most likely starting XI and formation for both teams in this FIFA World Cup 2026 match.
+
+CRITICAL RULES — strictly follow all of these:
+1. ONLY include players from each team's OFFICIAL FIFA World Cup 2026 squad (the 26-man roster submitted for WC 2026).
+2. DO NOT include players who retired from international football before WC 2026.
+3. DO NOT include players who were NOT selected for their country's WC 2026 squad.
+4. Verify each player actually represents that specific NATIONAL TEAM (not their club nation).
+5. Use the national team manager's preferred formation and system, not any club formation.
+6. If you are not certain a player is in the WC 2026 squad, choose a different player you are confident IS in the squad.
 
 Match: {home} vs {away}
 Tournament: FIFA World Cup 2026
@@ -285,7 +297,11 @@ Return ONLY valid JSON, no markdown:
 async def get_lineup(home_name: str, away_name: str) -> MatchLineup | None:
     if not settings.anthropic_api_key:
         return None
-    text = await _claude_ask(_LINEUP_PROMPT.format(home=home_name, away=away_name))
+    text = await _claude_ask(
+        _LINEUP_PROMPT.format(home=home_name, away=away_name),
+        model="claude-sonnet-4-6",
+        max_tokens=1024,
+    )
     if not text:
         return None
     try:

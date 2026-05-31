@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { translateTeam } from '@/lib/i18n';
 import type { Lang } from '@/lib/i18n';
 import type { FormResult, TeamLineup } from '@/lib/types';
+import PitchLineup from './PitchLineup';
 
 const POSITION_ORDER: Record<string, number> = {
   GK: 0,
@@ -93,24 +94,7 @@ export default function TeamForm({ teamName, teamFlag, form, lang = 'en', lineup
       )}
 
       {tab === 'lineup' && lineup && (
-        <div className="lineup-content">
-          <div className="lineup-formation">{lineup.formation}</div>
-          <div className="lineup-groups">
-            {groups.map((g) => (
-              <div key={`${g.label}-${g.players[0]?.name ?? ''}`} className="lineup-group">
-                <span className="lineup-group__label">{g.label}</span>
-                <div className="lineup-group__players">
-                  {g.players.map((p) => (
-                    <div key={`${p.position}-${p.name}`} className="lineup-player">
-                      <span className="lineup-player__pos">{p.position}</span>
-                      <span className="lineup-player__name">{p.name}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <PitchLineup lineup={lineup} teamFlag={teamFlag} teamName={teamName} />
       )}
     </div>
   );

@@ -1,18 +1,35 @@
-import type { Match, MatchDetail, BookmakerOdds } from './types';
+import type { Match, MatchDetail, BookmakerOdds, StandingRow } from './types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
 
 export async function fetchUpcomingMatches(): Promise<Match[]> {
   const res = await fetch(`${API_BASE}/api/v1/matches/upcoming`, {
-    next: { revalidate: 300 },
+    cache: 'no-store',
   });
   if (!res.ok) throw new Error(`Failed to fetch matches: ${res.status}`);
   return res.json();
 }
 
+export async function fetchGroupStandings(): Promise<Record<string, StandingRow[]>> {
+  const res = await fetch(`${API_BASE}/api/v1/groups/standings`, {
+    cache: 'no-store',
+  });
+  if (!res.ok) throw new Error(`Failed to fetch standings: ${res.status}`);
+  return res.json();
+}
+
+export async function refreshGroupStandings(): Promise<Record<string, StandingRow[]>> {
+  const res = await fetch(`${API_BASE}/api/v1/groups/standings/refresh`, {
+    method: 'POST',
+    cache: 'no-store',
+  });
+  if (!res.ok) throw new Error(`Failed to refresh standings: ${res.status}`);
+  return res.json();
+}
+
 export async function fetchMatchDetail(id: string): Promise<MatchDetail> {
   const res = await fetch(`${API_BASE}/api/v1/matches/${id}/predictions`, {
-    next: { revalidate: 60 },
+    next: { revalidate: 43200 },  // revalidate twice a day, matching backend prediction cache
   });
   if (!res.ok) throw new Error(`Failed to fetch match ${id}: ${res.status}`);
   return res.json();
@@ -29,6 +46,11 @@ export function formatDate(isoDate: string): string {
   return new Date(isoDate).toLocaleDateString('en-US', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
   });
+}
+
+export function formatDateHebrew(isoDate: string): string {
+  const d = new Date(isoDate + 'T12:00:00');
+  return d.toLocaleDateString('he-IL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 }
 
 export function getBestOdds(odds: BookmakerOdds[]) {
