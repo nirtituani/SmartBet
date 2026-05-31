@@ -25,6 +25,7 @@ export interface FormResult {
   score_away: number;
   result: 'W' | 'D' | 'L';
   home_or_away: 'H' | 'A';
+  tournament?: string;
 }
 
 export interface H2HResult {
@@ -35,6 +36,7 @@ export interface H2HResult {
   away_flag: string;
   home_score: number;
   away_score: number;
+  tournament?: string;
 }
 
 export interface BookmakerOdds {
@@ -49,7 +51,43 @@ export interface AIPrediction {
   confidence_percentage: number;
   tactical_analysis: string;
   key_factors: string[];
+  additional_context?: string;
   value_bet: { recommendation: string; target_odds: number; rational: string };
+}
+
+export interface StandingRow {
+  name: string;
+  flag: string;
+  fifa_rank: number;
+  mp: number;
+  w: number;
+  d: number;
+  l: number;
+  gf: number;
+  ga: number;
+  gd: number;
+  pts: number;
+}
+
+export interface ScoreOdd {
+  score: string;
+  odds: number;
+}
+
+export interface Player {
+  name: string;
+  position: string;
+}
+
+export interface TeamLineup {
+  formation: string;
+  starters: Player[];
+}
+
+export interface MatchLineup {
+  home: TeamLineup;
+  away: TeamLineup;
+  is_predicted: boolean;
 }
 
 export interface MatchDetail {
@@ -58,5 +96,7 @@ export interface MatchDetail {
   away_form: FormResult[];
   h2h: H2HResult[];
   odds_comparison: BookmakerOdds[];
+  exact_scores: ScoreOdd[];
   prediction: AIPrediction | null;
+  lineup: MatchLineup | null;
 }
