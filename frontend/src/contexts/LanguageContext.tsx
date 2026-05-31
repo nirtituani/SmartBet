@@ -13,7 +13,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const saved = localStorage.getItem('smartbet-lang') as Lang | null;
-    if (saved === 'he' || saved === 'en') setLangState(saved);
+    if (saved === 'he' || saved === 'en') setLangState(saved); // eslint-disable-line react-hooks/set-state-in-effect
   }, []);
 
   function setLang(l: Lang) {
