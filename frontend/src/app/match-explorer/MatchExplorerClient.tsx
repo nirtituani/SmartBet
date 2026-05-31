@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { t, translateTeam, translateGroup } from '@/lib/i18n';
-import { groupMatchesByDate, formatDate, formatDateHebrew } from '@/lib/api';
+import { fetchUpcomingMatches, groupMatchesByDate, formatDate, formatDateHebrew } from '@/lib/api';
 import type { Match } from '@/lib/types';
 
 function MatchCard({ match }: { match: Match }) {
@@ -28,9 +29,15 @@ function MatchCard({ match }: { match: Match }) {
   );
 }
 
-export default function MatchExplorerClient({ matches }: { matches: Match[] }) {
+export default function MatchExplorerClient({ matches: initialMatches }: { matches: Match[] }) {
   const { lang } = useLanguage();
   const tr = t[lang].matchExplorer;
+  const [matches, setMatches] = useState<Match[]>(initialMatches);
+
+  useEffect(() => {
+    fetchUpcomingMatches().then(setMatches).catch(() => {});
+  }, []);
+
   const grouped = groupMatchesByDate(matches);
   const sortedDates = Object.keys(grouped).sort();
 
