@@ -6,7 +6,7 @@ import { fetchGroupStandings } from '@/lib/api';
 import './bracket.css';
 
 export default async function BracketPage() {
-  const raw = await fetchGroupStandings();
+  const raw = await fetchGroupStandings().catch(() => ({} as Record<string, import('@/lib/types').StandingRow[]>));
   // Convert "Group A" → "A", keep top 2 per group
   const standings: Record<string, { name: string; flag: string }[]> = {};
   for (const [group, rows] of Object.entries(raw)) {

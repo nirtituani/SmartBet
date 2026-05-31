@@ -11,7 +11,7 @@ export default async function MatchIntelligencePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const detail = await fetchMatchDetail(id);
+  const detail = await fetchMatchDetail(id).catch(() => null);
   return (
     <>
       <Header />

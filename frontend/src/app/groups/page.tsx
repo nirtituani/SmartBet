@@ -9,7 +9,7 @@ import './groups.css';
 export { type StandingRow };
 
 export default async function GroupsPage() {
-  const groups = await fetchGroupStandings();
+  const groups = await fetchGroupStandings().catch(() => ({} as Record<string, StandingRow[]>));
   return (
     <>
       <Header />
