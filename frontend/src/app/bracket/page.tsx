@@ -1,9 +1,9 @@
+export const dynamic = 'force-dynamic';
+
 import Header from '@/components/Header';
 import BracketClient from './BracketClient';
 import { fetchGroupStandings } from '@/lib/api';
 import './bracket.css';
-
-export const dynamic = 'force-dynamic';
 
 export default async function BracketPage() {
   const raw = await fetchGroupStandings();

@@ -3,9 +3,7 @@ import MatchIntelClient from './MatchIntelClient';
 import { fetchMatchDetail } from '@/lib/api';
 import './match-intelligence.css';
 
-export async function generateStaticParams() {
-  return Array.from({ length: 72 }, (_, i) => ({ id: String(i + 1) }));
-}
+export const dynamic = 'force-dynamic';
 
 export default async function MatchIntelligencePage({
   params,
