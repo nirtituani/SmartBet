@@ -99,3 +99,14 @@
   background: rgba(99, 179, 237, 0.08);
   margin: 0;
 }
+
+@media (max-width: 768px) {
+  .bracket-page {
+    padding: 24px 16px 40px;
+  }
+
+  .bracket-page__title {
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
+}

@@ -130,3 +130,35 @@
   color: var(--border-subtle);
   font-size: 12px;
 }
+
+@media (max-width: 768px) {
+  .header__inner {
+    padding: 0 16px;
+    gap: 12px;
+    height: 56px;
+  }
+
+  .header__nav {
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex: 1;
+    gap: 2px;
+  }
+
+  .header__nav::-webkit-scrollbar { display: none; }
+
+  .header__nav-link {
+    padding: 5px 10px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .header__icon-btn,
+  .header__avatar {
+    display: none;
+  }
+
+  .header__actions {
+    gap: 8px;
+  }
+}

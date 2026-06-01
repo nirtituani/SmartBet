@@ -673,3 +673,58 @@
   text-overflow: ellipsis;
   letter-spacing: 0.02em;
 }
+
+@media (max-width: 768px) {
+  .intel {
+    padding: 20px 16px;
+  }
+
+  .intel__title {
+    font-size: 17px;
+    margin-bottom: 20px;
+  }
+
+  .matchup {
+    gap: 16px;
+    padding: 18px 14px;
+    margin-bottom: 20px;
+  }
+
+  .matchup__flag {
+    font-size: 40px;
+  }
+
+  .matchup__name {
+    font-size: 16px;
+  }
+
+  .matchup__vs {
+    font-size: 20px;
+  }
+
+  .intel__top-row {
+    grid-template-columns: 1fr;
+  }
+
+  .intel__bottom-row {
+    grid-template-columns: 1fr;
+  }
+
+  .ai-card__score {
+    font-size: 40px;
+  }
+
+  .h2h-row {
+    grid-template-columns: 1fr 64px 1fr 56px;
+    font-size: 11px;
+  }
+
+  .form-row {
+    grid-template-columns: 24px 46px 1fr 60px;
+    font-size: 12px;
+  }
+
+  .scores-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

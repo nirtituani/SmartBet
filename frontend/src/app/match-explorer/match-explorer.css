@@ -116,3 +116,37 @@
   text-transform: uppercase;
 }
 
+
+@media (max-width: 768px) {
+  .explorer {
+    padding: 24px 16px;
+  }
+
+  .explorer__title {
+    font-size: 26px;
+  }
+
+  .explorer__subtitle {
+    margin-bottom: 24px;
+  }
+
+  .match-card {
+    padding: 12px 14px;
+  }
+
+  .match-card__center {
+    min-width: 90px;
+  }
+
+  .match-card__flag {
+    font-size: 20px;
+  }
+
+  .match-card__team-name {
+    font-size: 13px;
+  }
+
+  .match-card__kickoff {
+    font-size: 14px;
+  }
+}

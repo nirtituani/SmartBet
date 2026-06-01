@@ -166,3 +166,21 @@
 .standings-table tbody tr:nth-child(2) td {
   border-bottom: 1px solid rgba(99, 179, 237, 0.2);
 }
+
+@media (max-width: 768px) {
+  .groups-page {
+    padding: 24px 16px;
+  }
+
+  .groups-page__title {
+    font-size: 26px;
+  }
+
+  .groups-page__subtitle {
+    margin-bottom: 24px;
+  }
+
+  .groups-grid {
+    grid-template-columns: 1fr;
+  }
+}
