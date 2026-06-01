@@ -19,6 +19,8 @@ export default function Header() {
     { href: '/bracket',        label: tr.bracket },
   ];
 
+  const close = () => setMenuOpen(false);
+
   return (
     <header className="header">
       <div className="header__inner">
@@ -62,20 +64,26 @@ export default function Header() {
         </button>
       </div>
 
-      {menuOpen && (
-        <nav className="header__mobile-menu">
-          {NAV_LINKS.map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className={`header__mobile-link${pathname === href ? ' header__mobile-link--active' : ''}`}
-              onClick={() => setMenuOpen(false)}
-            >
-              {label}
-            </Link>
-          ))}
-        </nav>
-      )}
+      {/* Overlay */}
+      <div
+        className="header__overlay"
+        style={{ opacity: menuOpen ? 1 : 0, pointerEvents: menuOpen ? 'auto' : 'none' }}
+        onClick={close}
+      />
+
+      {/* Side drawer */}
+      <nav className={`header__drawer${menuOpen ? ' header__drawer--open' : ''}`}>
+        {NAV_LINKS.map(({ href, label }) => (
+          <Link
+            key={href}
+            href={href}
+            className={`header__drawer-link${pathname === href ? ' header__drawer-link--active' : ''}`}
+            onClick={close}
+          >
+            {label}
+          </Link>
+        ))}
+      </nav>
     </header>
   );
 }

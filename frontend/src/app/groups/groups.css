@@ -183,4 +183,20 @@
   .groups-grid {
     grid-template-columns: 1fr;
   }
+
+  .standings-table__name {
+    white-space: normal;
+    word-break: break-word;
+    font-size: 12px;
+  }
+
+  .standings-table__flag {
+    font-size: 15px;
+  }
+
+  .standings-table td,
+  .standings-table th {
+    padding: 8px 4px;
+    font-size: 12px;
+  }
 }

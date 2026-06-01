@@ -60,8 +60,8 @@ export default function GroupsClient({ groups: initialGroups }: { groups: GroupM
                   <th>{cols.w}</th>
                   <th>{cols.d}</th>
                   <th>{cols.l}</th>
-                  <th>{cols.gf}</th>
-                  <th>{cols.ga}</th>
+                  <th className="col-gf">{cols.gf}</th>
+                  <th className="col-ga">{cols.ga}</th>
                   <th>{cols.gd}</th>
                   <th className="standings-table__pts">{cols.pts}</th>
                 </tr>
@@ -80,8 +80,8 @@ export default function GroupsClient({ groups: initialGroups }: { groups: GroupM
                     <td>{row.w}</td>
                     <td>{row.d}</td>
                     <td>{row.l}</td>
-                    <td>{row.gf}</td>
-                    <td>{row.ga}</td>
+                    <td className="col-gf">{row.gf}</td>
+                    <td className="col-ga">{row.ga}</td>
                     <td>{row.gd === 0 ? '0' : row.gd > 0 ? `+${row.gd}` : row.gd}</td>
                     <td className="standings-table__pts">{row.pts}</td>
                   </tr>
