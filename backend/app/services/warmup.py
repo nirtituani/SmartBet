@@ -6,7 +6,7 @@ from app.core.cache import get_cached, set_cached
 from app.services.ai_service import get_prediction
 from app.services.football_api import get_match_detail, get_upcoming_matches
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("uvicorn.error")
 
 _CONCURRENCY = 3
 _FULL_TTL = 7 * 24 * 60 * 60   # 7 days for the full one-time load
