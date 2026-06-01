@@ -72,7 +72,7 @@ export default function Header() {
       />
 
       {/* Side drawer */}
-      <nav className={`header__drawer${menuOpen ? ' header__drawer--open' : ''}`}>
+      <nav className={`header__drawer${menuOpen ? ' header__drawer--open' : ''}${lang === 'he' ? ' header__drawer--rtl' : ''}`}>
         {NAV_LINKS.map(({ href, label }) => (
           <Link
             key={href}
