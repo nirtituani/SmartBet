@@ -15,8 +15,6 @@ export default function Header() {
     { href: '/match-explorer', label: tr.matchExplorer },
     { href: '/groups',         label: tr.groups },
     { href: '/bracket',        label: tr.bracket },
-    { href: '/live-odds',      label: tr.liveOdds },
-    { href: '/stats',          label: tr.stats },
   ];
 
   return (
