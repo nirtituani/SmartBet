@@ -1,9 +1,20 @@
+import asyncio
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.router import router as v1_router
 
-app = FastAPI(title="SmartBet API", version="1.0.0")
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    from app.services.warmup import warm_cache
+    asyncio.create_task(warm_cache())
+    yield
+
+
+app = FastAPI(title="SmartBet API", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
