@@ -6,24 +6,27 @@ from app.core.config import settings
 
 _mem: dict[str, tuple[Any, float]] = {}
 
+_redis = None
 try:
     import redis.asyncio as aioredis
-    _redis_available = True
-except ImportError:
-    _redis_available = False
+    _redis = aioredis.from_url(
+        settings.redis_url,
+        decode_responses=True,
+        socket_connect_timeout=2,
+        socket_timeout=2,
+    )
+except Exception:
+    pass
 
 
 async def get_cached(key: str) -> Any | None:
-    if _redis_available:
-        r = aioredis.from_url(settings.redis_url, decode_responses=True, socket_connect_timeout=1)
+    if _redis is not None:
         try:
-            val = await r.get(key)
+            val = await _redis.get(key)
             if val is not None:
                 return json.loads(val)
         except Exception:
             pass
-        finally:
-            await r.aclose()
     entry = _mem.get(key)
     if entry and time.time() < entry[1]:
         return entry[0]
@@ -32,25 +35,19 @@ async def get_cached(key: str) -> Any | None:
 
 
 async def set_cached(key: str, value: Any, ttl: int) -> None:
-    if _redis_available:
-        r = aioredis.from_url(settings.redis_url, decode_responses=True, socket_connect_timeout=1)
+    if _redis is not None:
         try:
-            await r.setex(key, ttl, json.dumps(value))
+            await _redis.setex(key, ttl, json.dumps(value))
             return
         except Exception:
             pass
-        finally:
-            await r.aclose()
     _mem[key] = (value, time.time() + ttl)
 
 
 async def delete_cached(key: str) -> None:
-    if _redis_available:
-        r = aioredis.from_url(settings.redis_url, decode_responses=True, socket_connect_timeout=1)
+    if _redis is not None:
         try:
-            await r.delete(key)
+            await _redis.delete(key)
         except Exception:
             pass
-        finally:
-            await r.aclose()
     _mem.pop(key, None)
