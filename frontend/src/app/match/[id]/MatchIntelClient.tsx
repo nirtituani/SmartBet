@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import TeamForm from '@/components/TeamForm';
 import H2HHistory from '@/components/H2HHistory';
@@ -8,14 +8,23 @@ import OddsTable from '@/components/OddsTable';
 import ExactScores from '@/components/ExactScores';
 import AIPrediction from '@/components/AIPrediction';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { fetchMatchDetail } from '@/lib/api';
 import { t, translateTeam } from '@/lib/i18n';
 import type { MatchDetail } from '@/lib/types';
 
-export default function MatchIntelClient({ detail }: { detail: MatchDetail }) {
+export default function MatchIntelClient({ matchId }: { matchId: string }) {
   const { lang } = useLanguage();
   const tr = t[lang].intel;
-  const { match, home_form, away_form, h2h, odds_comparison, exact_scores, prediction, lineup } = detail;
+  const [detail, setDetail] = useState<MatchDetail | null>(null);
   const [rightTab, setRightTab] = useState<'prediction' | 'scores'>('prediction');
+
+  useEffect(() => {
+    fetchMatchDetail(matchId).then(setDetail).catch(() => {});
+  }, [matchId]);
+
+  if (!detail) return <main className="intel"><p style={{ color: 'white', padding: '2rem' }}>Loading...</p></main>;
+
+  const { match, home_form, away_form, h2h, odds_comparison, exact_scores, prediction, lineup } = detail;
 
   return (
     <main className="intel">
