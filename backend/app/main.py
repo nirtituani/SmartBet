@@ -18,4 +18,9 @@ app.include_router(v1_router, prefix="/api/v1")
 
 @app.get("/health")
 async def health():
-    return {"status": "ok"}
+    from app.core.config import settings
+    return {
+        "status": "ok",
+        "ai_enabled": bool(settings.anthropic_api_key),
+        "key_prefix": settings.anthropic_api_key[:10] if settings.anthropic_api_key else "NOT SET",
+    }
