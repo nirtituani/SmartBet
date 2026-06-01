@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { t } from '@/lib/i18n';
@@ -10,6 +11,7 @@ export default function Header() {
   const pathname = usePathname();
   const { lang, setLang } = useLanguage();
   const tr = t[lang].nav;
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const NAV_LINKS = [
     { href: '/match-explorer', label: tr.matchExplorer },
@@ -21,6 +23,7 @@ export default function Header() {
     <header className="header">
       <div className="header__inner">
         <Link href="/match-explorer" className="header__logo">SmartBet</Link>
+
         <nav className="header__nav">
           {NAV_LINKS.map(({ href, label }) => (
             <Link
@@ -32,6 +35,7 @@ export default function Header() {
             </Link>
           ))}
         </nav>
+
         <div className="header__actions">
           <div className="header__lang-toggle">
             <button
@@ -48,7 +52,30 @@ export default function Header() {
           <button className="header__icon-btn" aria-label="Notifications">🔔</button>
           <div className="header__avatar" aria-label="Profile">U</div>
         </div>
+
+        <button
+          className={`header__hamburger${menuOpen ? ' header__hamburger--open' : ''}`}
+          onClick={() => setMenuOpen(o => !o)}
+          aria-label="Menu"
+        >
+          <span /><span /><span />
+        </button>
       </div>
+
+      {menuOpen && (
+        <nav className="header__mobile-menu">
+          {NAV_LINKS.map(({ href, label }) => (
+            <Link
+              key={href}
+              href={href}
+              className={`header__mobile-link${pathname === href ? ' header__mobile-link--active' : ''}`}
+              onClick={() => setMenuOpen(false)}
+            >
+              {label}
+            </Link>
+          ))}
+        </nav>
+      )}
     </header>
   );
 }
