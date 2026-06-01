@@ -24,6 +24,14 @@ export default function Header() {
   return (
     <header className="header">
       <div className="header__inner">
+        <button
+          className={`header__hamburger${menuOpen ? ' header__hamburger--open' : ''}`}
+          onClick={() => setMenuOpen(o => !o)}
+          aria-label="Menu"
+        >
+          <span /><span /><span />
+        </button>
+
         <Link href="/match-explorer" className="header__logo">SmartBet</Link>
 
         <nav className="header__nav">
@@ -55,13 +63,6 @@ export default function Header() {
           <div className="header__avatar" aria-label="Profile">U</div>
         </div>
 
-        <button
-          className={`header__hamburger${menuOpen ? ' header__hamburger--open' : ''}`}
-          onClick={() => setMenuOpen(o => !o)}
-          aria-label="Menu"
-        >
-          <span /><span /><span />
-        </button>
       </div>
 
       {/* Overlay */}
