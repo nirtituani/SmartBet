@@ -2,6 +2,7 @@ import asyncio
 import logging
 from datetime import date
 
+from app.core.budget import COST_PER_MATCH, DAILY_LIMIT_USD, is_over_limit, record_spend
 from app.core.cache import get_cached, set_cached
 from app.services.ai_service import get_prediction
 from app.services.football_api import get_match_detail, get_upcoming_matches
@@ -10,11 +11,16 @@ logger = logging.getLogger("uvicorn.error")
 
 _CONCURRENCY = 3
 _FULL_TTL = 7 * 24 * 60 * 60   # 7 days for the full one-time load
-_DAILY_TTL = 24 * 60 * 60       # 24 hours for today's matches
+_DAILY_TTL = 24 * 60 * 60       # 24 hours for daily-refreshed matches
 _DAILY_INTERVAL = 24 * 60 * 60  # seconds between daily refreshes
+_DAILY_REFRESH_COUNT = 5        # only refresh the next N upcoming matches
 
 
 async def _compute_match(fixture_id: int, ttl: int, force: bool = False) -> None:
+    if await is_over_limit():
+        logger.warning("[warmup] daily limit $%.2f reached, skipping fixture %d", DAILY_LIMIT_USD, fixture_id)
+        return
+
     cache_key = f"match_detail_v2:{fixture_id}"
     if not force:
         cached = await get_cached(cache_key)
@@ -32,9 +38,18 @@ async def _compute_match(fixture_id: int, ttl: int, force: bool = False) -> None
             detail.match, detail.home_form, detail.away_form, detail.h2h, detail.odds_comparison
         )
         await set_cached(cache_key, detail.model_dump(), ttl=ttl)
-        logger.info("[warmup] fixture %d done", fixture_id)
+        await record_spend(COST_PER_MATCH)
+        logger.info("[warmup] fixture %d done (estimated spend today: $%.2f)", fixture_id, await _get_spend_safe())
     except Exception as exc:
         logger.error("[warmup] fixture %d error: %s", fixture_id, exc)
+
+
+async def _get_spend_safe() -> float:
+    from app.core.budget import get_spend
+    try:
+        return await get_spend()
+    except Exception:
+        return 0.0
 
 
 async def _run_with_semaphore(fixture_id: int, ttl: int, force: bool, sem: asyncio.Semaphore) -> None:
@@ -43,8 +58,8 @@ async def _run_with_semaphore(fixture_id: int, ttl: int, force: bool, sem: async
 
 
 async def full_warmup() -> None:
-    """One-time startup: warm all uncached matches with 7-day TTL."""
-    logger.info("[warmup] full warmup starting")
+    """Startup: warm all uncached matches with 7-day TTL."""
+    logger.info("[warmup] full warmup starting (daily limit: $%.2f)", DAILY_LIMIT_USD)
     matches = await get_upcoming_matches()
     matches_sorted = sorted(matches, key=lambda m: m.kickoff_date)
     sem = asyncio.Semaphore(_CONCURRENCY)
@@ -56,24 +71,26 @@ async def full_warmup() -> None:
 
 
 async def daily_refresh() -> None:
-    """Refresh only today's matches every 24 hours."""
+    """Refresh the next 5 upcoming matches every 24 hours."""
     today = date.today().isoformat()
     logger.info("[warmup] daily refresh for %s", today)
     matches = await get_upcoming_matches()
-    todays = [m for m in matches if m.kickoff_date == today]
-    if not todays:
-        logger.info("[warmup] nothing to refresh today")
+    next_5 = sorted(
+        [m for m in matches if m.kickoff_date >= today],
+        key=lambda m: m.kickoff_date
+    )[:_DAILY_REFRESH_COUNT]
+    if not next_5:
+        logger.info("[warmup] no upcoming matches to refresh")
         return
     sem = asyncio.Semaphore(_CONCURRENCY)
     await asyncio.gather(*[
         _run_with_semaphore(m.id, _DAILY_TTL, force=True, sem=sem)
-        for m in todays
+        for m in next_5
     ])
-    logger.info("[warmup] daily refresh complete (%d matches)", len(todays))
+    logger.info("[warmup] daily refresh complete (%d matches)", len(next_5))
 
 
 async def warm_cache() -> None:
-    """Run full warmup once, then refresh next 6 every 24 hours."""
     await full_warmup()
     while True:
         await asyncio.sleep(_DAILY_INTERVAL)

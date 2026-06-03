@@ -29,10 +29,9 @@ app.include_router(v1_router, prefix="/api/v1")
 
 @app.get("/health")
 async def health():
-    import os
-    from app.core.config import settings
     from app.core.cache import _redis
-    raw = os.environ.get("ANTHROPIC_API_KEY", "NOT IN ENV")
+    from app.core.config import settings
+    from app.core.budget import get_spend, DAILY_LIMIT_USD
     redis_ok = False
     if _redis is not None:
         try:
@@ -40,8 +39,11 @@ async def health():
             redis_ok = True
         except Exception:
             pass
+    spend = await get_spend()
     return {
         "status": "ok",
         "ai_enabled": bool(settings.anthropic_api_key),
         "redis_connected": redis_ok,
+        "daily_spend_usd": round(spend, 3),
+        "daily_limit_usd": DAILY_LIMIT_USD,
     }
