@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from datetime import date, timedelta
+from datetime import date
 
 from app.core.cache import get_cached, set_cached
 from app.services.ai_service import get_prediction
@@ -56,37 +56,20 @@ async def full_warmup() -> None:
 
 
 async def daily_refresh() -> None:
-    """Refresh today's matches + all upcoming matches for teams that played yesterday."""
-    today = date.today()
-    yesterday = (today - timedelta(days=1)).isoformat()
-    today_str = today.isoformat()
-    logger.info("[warmup] daily refresh for %s", today_str)
+    """Refresh only today's matches every 24 hours."""
+    today = date.today().isoformat()
+    logger.info("[warmup] daily refresh for %s", today)
     matches = await get_upcoming_matches()
-
-    # Teams that played yesterday — their form changed
-    recently_played = {
-        name
-        for m in matches if m.kickoff_date == yesterday
-        for name in (m.home_team.name, m.away_team.name)
-    }
-
-    to_refresh = [
-        m for m in matches
-        if m.kickoff_date == today_str
-        or m.home_team.name in recently_played
-        or m.away_team.name in recently_played
-    ]
-
-    if not to_refresh:
+    todays = [m for m in matches if m.kickoff_date == today]
+    if not todays:
         logger.info("[warmup] nothing to refresh today")
         return
-
     sem = asyncio.Semaphore(_CONCURRENCY)
     await asyncio.gather(*[
         _run_with_semaphore(m.id, _DAILY_TTL, force=True, sem=sem)
-        for m in to_refresh
+        for m in todays
     ])
-    logger.info("[warmup] daily refresh complete (%d matches)", len(to_refresh))
+    logger.info("[warmup] daily refresh complete (%d matches)", len(todays))
 
 
 async def warm_cache() -> None:
