@@ -27,6 +27,50 @@ app.add_middleware(
 app.include_router(v1_router, prefix="/api/v1")
 
 
+@app.get("/test-lineups")
+async def test_lineups():
+    """Test whether API-Football lineups endpoint is accessible on current plan."""
+    import httpx
+    from app.core.config import settings
+    if not settings.football_api_key:
+        return {"error": "FOOTBALL_API_KEY not set"}
+    # Use England vs Croatia (fixture 67) as a test — happening June 17
+    # We first need to find the real API-Football fixture ID
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            # Fetch WC 2026 fixtures for June 17
+            r = await client.get(
+                "https://api-football-v1.p.rapidapi.com/v3/fixtures",
+                headers={
+                    "X-RapidAPI-Key": settings.football_api_key,
+                    "X-RapidAPI-Host": settings.football_api_host,
+                },
+                params={"league": 1, "season": 2026, "date": "2026-06-17"},
+            )
+            data = r.json()
+            fixtures = data.get("response", [])
+            if not fixtures:
+                return {"error": "no fixtures found", "raw": data}
+            # Try lineups for the first fixture found
+            fixture_id = fixtures[0]["fixture"]["id"]
+            r2 = await client.get(
+                "https://api-football-v1.p.rapidapi.com/v3/fixtures/lineups",
+                headers={
+                    "X-RapidAPI-Key": settings.football_api_key,
+                    "X-RapidAPI-Host": settings.football_api_host,
+                },
+                params={"fixture": fixture_id},
+            )
+            return {
+                "fixture_id": fixture_id,
+                "fixture_teams": f"{fixtures[0]['teams']['home']['name']} vs {fixtures[0]['teams']['away']['name']}",
+                "lineup_status": r2.status_code,
+                "lineup_response": r2.json(),
+            }
+    except Exception as e:
+        return {"error": str(e)}
+
+
 @app.get("/health")
 async def health():
     from app.core.cache import _redis
