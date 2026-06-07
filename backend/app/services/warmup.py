@@ -58,16 +58,27 @@ async def _run_with_semaphore(fixture_id: int, ttl: int, force: bool, sem: async
 
 
 async def full_warmup() -> None:
-    """Startup: warm all uncached matches with 7-day TTL."""
-    logger.info("[warmup] full warmup starting (daily limit: $%.2f)", DAILY_LIMIT_USD)
+    """Startup: warm only uncached matches. Skips entirely if all are cached."""
     matches = await get_upcoming_matches()
     matches_sorted = sorted(matches, key=lambda m: m.kickoff_date)
+
+    uncached = [
+        m for m in matches_sorted
+        if not (await get_cached(f"match_detail_v2:{m.id}") or {}).get("lineup")
+    ]
+
+    if not uncached:
+        logger.info("[warmup] all %d matches cached — skipping full warmup", len(matches_sorted))
+        return
+
+    logger.info("[warmup] full warmup: %d/%d matches need computing (daily limit: $%.2f)",
+                len(uncached), len(matches_sorted), DAILY_LIMIT_USD)
     sem = asyncio.Semaphore(_CONCURRENCY)
     await asyncio.gather(*[
         _run_with_semaphore(m.id, _FULL_TTL, force=False, sem=sem)
-        for m in matches_sorted
+        for m in uncached
     ])
-    logger.info("[warmup] full warmup complete (%d matches)", len(matches_sorted))
+    logger.info("[warmup] full warmup complete")
 
 
 async def daily_refresh() -> None:

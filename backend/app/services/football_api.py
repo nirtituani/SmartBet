@@ -239,6 +239,92 @@ _ESPN_NAME_MAP: dict[str, str] = {
 }
 _ESPN_BASE = "https://site.api.espn.com/apis/site/v2/sports/soccer/all/teams"
 
+# ── SofaScore (unofficial, no key needed) ────────────────────────────────────
+_SOFASCORE_BASE = "https://api.sofascore.com/api/v1"
+_SOFASCORE_HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; SmartBet/1.0)"}
+
+# Our name → SofaScore variations (lowercase)
+_SOFASCORE_ALIASES: dict[str, list[str]] = {
+    "USA": ["united states", "usa"],
+    "Bosnia & Herzegovina": ["bosnia & herzegovina", "bosnia-herzegovina", "bosnia"],
+    "Ivory Coast": ["ivory coast", "côte d'ivoire", "cote d'ivoire"],
+    "DR Congo": ["dr congo", "congo dr", "democratic republic of congo"],
+    "South Korea": ["south korea", "korea republic"],
+    "Czechia": ["czechia", "czech republic"],
+    "Saudi Arabia": ["saudi arabia"],
+    "Cape Verde": ["cape verde"],
+    "South Africa": ["south africa"],
+    "New Zealand": ["new zealand"],
+}
+
+
+def _sofascore_names_match(our_name: str, sf_name: str) -> bool:
+    sf = sf_name.lower().strip()
+    our = our_name.lower().strip()
+    if our == sf:
+        return True
+    for alias in _SOFASCORE_ALIASES.get(our_name, []):
+        if alias == sf:
+            return True
+    return our in sf or sf in our
+
+
+def _parse_sofascore_team(team_data: dict) -> "TeamLineup | None":
+    formation = team_data.get("formation", "")
+    players_raw = team_data.get("players", [])
+    if not formation or not players_raw:
+        return None
+    pos_map = {"G": "GK", "D": "DEF", "M": "MID", "F": "FWD"}
+    starters = [
+        Player(
+            name=p.get("player", {}).get("name", ""),
+            position=pos_map.get(p.get("position", ""), p.get("position", "")),
+        )
+        for p in players_raw
+        if p.get("player", {}).get("name") and p.get("position")
+    ]
+    if len(starters) < 11:
+        return None
+    return TeamLineup(formation=formation, starters=starters[:11])
+
+
+async def _fetch_sofascore_lineup(home_name: str, away_name: str, fixture_date: str) -> "MatchLineup | None":
+    """Fetch confirmed lineup from SofaScore. Returns None if not yet confirmed."""
+    try:
+        async with httpx.AsyncClient(timeout=10.0, headers=_SOFASCORE_HEADERS) as client:
+            r = await client.get(
+                f"{_SOFASCORE_BASE}/sport/football/scheduled-events/{fixture_date}"
+            )
+            r.raise_for_status()
+            events = r.json().get("events", [])
+
+            event_id = None
+            for event in events:
+                h = event.get("homeTeam", {}).get("name", "")
+                a = event.get("awayTeam", {}).get("name", "")
+                if _sofascore_names_match(home_name, h) and _sofascore_names_match(away_name, a):
+                    event_id = event["id"]
+                    break
+
+            if not event_id:
+                return None
+
+            r2 = await client.get(f"{_SOFASCORE_BASE}/event/{event_id}/lineups")
+            r2.raise_for_status()
+            data = r2.json()
+
+            if not data.get("confirmed"):
+                return None
+
+            home_lineup = _parse_sofascore_team(data.get("home", {}))
+            away_lineup = _parse_sofascore_team(data.get("away", {}))
+            if not home_lineup or not away_lineup:
+                return None
+
+            return MatchLineup(home=home_lineup, away=away_lineup, is_predicted=False)
+    except Exception:
+        return None
+
 
 async def _fetch_team_form_espn(team_name: str) -> list[FormResult] | None:
     """Fetch last 5 completed results for a national team via ESPN (no API key needed)."""
@@ -833,11 +919,18 @@ async def get_match_detail(fixture_id: int) -> MatchDetail | None:
 
         lineup_key = f"lineup_v2:{fixture_id}"
         lineup_raw = await get_cached(lineup_key)
-        if lineup_raw is None:
-            lineup_obj = await get_lineup(home_name, away_name)
-            if lineup_obj:
-                lineup_raw = lineup_obj.model_dump()
-                await set_cached(lineup_key, lineup_raw, ttl=_form_ttl(home_name))
+
+        # If cached lineup is predicted (not confirmed), try SofaScore for real lineup
+        if lineup_raw is None or lineup_raw.get("is_predicted", True):
+            sofascore_lineup = await _fetch_sofascore_lineup(home_name, away_name, match.kickoff_date)
+            if sofascore_lineup:
+                lineup_raw = sofascore_lineup.model_dump()
+                await set_cached(lineup_key, lineup_raw, ttl=7200)  # 2h — re-check closer to kickoff
+            elif lineup_raw is None:
+                lineup_obj = await get_lineup(home_name, away_name)
+                if lineup_obj:
+                    lineup_raw = lineup_obj.model_dump()
+                    await set_cached(lineup_key, lineup_raw, ttl=_form_ttl(home_name))
 
         home_form = [FormResult(**r) for r in home_form_cached] if home_form_cached else _mock_form(match.home_team)
         away_form = [FormResult(**r) for r in away_form_cached] if away_form_cached else _mock_form(match.away_team)
