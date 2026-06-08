@@ -17,6 +17,7 @@ export default function Header() {
     { href: '/match-explorer', label: tr.matchExplorer },
     { href: '/groups',         label: tr.groups },
     { href: '/bracket',        label: tr.bracket },
+    { href: '/odds',           label: tr.odds },
   ];
 
   const close = () => setMenuOpen(false);

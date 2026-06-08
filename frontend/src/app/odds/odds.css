@@ -1,0 +1,230 @@
+.wc-odds {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 2rem 1rem 4rem;
+}
+
+.wc-odds__header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.wc-odds__breadcrumb {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.wc-odds__title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--neon-gold);
+  text-shadow: 0 0 20px rgba(246, 201, 14, 0.4);
+  margin-bottom: 0.25rem;
+}
+
+.wc-odds__subtitle {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.wc-odds__loading {
+  display: flex;
+  justify-content: center;
+  padding: 4rem 0;
+}
+
+.wc-odds__spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(99, 179, 237, 0.2);
+  border-top-color: var(--neon-blue);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.wc-odds__empty {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 3rem 0;
+}
+
+.wc-odds__table-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border-neon-gold);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 0 24px rgba(246, 201, 14, 0.08);
+}
+
+.wc-odds__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.wc-odds__th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  background: rgba(246, 201, 14, 0.06);
+  border-bottom: 1px solid rgba(246, 201, 14, 0.15);
+}
+
+[dir='rtl'] .wc-odds__th {
+  text-align: right;
+}
+
+.wc-odds__th--rank { width: 48px; text-align: center; }
+.wc-odds__th--odds { width: 80px; text-align: right; }
+
+[dir='rtl'] .wc-odds__th--odds { text-align: left; }
+
+.wc-odds__row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 0.15s;
+}
+
+.wc-odds__row:last-child {
+  border-bottom: none;
+}
+
+.wc-odds__row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.wc-odds__row--top {
+  background: rgba(246, 201, 14, 0.04);
+}
+
+.wc-odds__row--top:hover {
+  background: rgba(246, 201, 14, 0.08);
+}
+
+.wc-odds__td {
+  padding: 0.65rem 1rem;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  vertical-align: middle;
+}
+
+.wc-odds__td--rank {
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+.wc-odds__rank-num {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.wc-odds__td--team {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.wc-odds__flag {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.wc-odds__team-name {
+  font-weight: 500;
+}
+
+.wc-odds__td--prob {
+  width: 45%;
+}
+
+.wc-odds__prob-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.wc-odds__prob-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(99, 179, 237, 0.35);
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+
+[dir='rtl'] .wc-odds__prob-bar {
+  left: auto;
+  right: 0;
+}
+
+.wc-odds__prob-bar--gold   { background: rgba(246, 201, 14, 0.55); }
+.wc-odds__prob-bar--silver { background: rgba(192, 192, 192, 0.45); }
+.wc-odds__prob-bar--bronze { background: rgba(205, 127, 50, 0.45); }
+
+.wc-odds__prob-text {
+  position: relative;
+  z-index: 1;
+  padding: 0 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.wc-odds__td--odds {
+  text-align: right;
+}
+
+[dir='rtl'] .wc-odds__td--odds {
+  text-align: left;
+}
+
+.wc-odds__odds-value {
+  font-family: monospace;
+  font-size: 0.875rem;
+  color: var(--neon-blue);
+}
+
+.wc-odds__source {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  margin-top: 1rem;
+  opacity: 0.7;
+}
+
+@media (max-width: 768px) {
+  .wc-odds {
+    padding: 1.25rem 0.75rem 3rem;
+  }
+
+  .wc-odds__title {
+    font-size: 1.3rem;
+  }
+
+  .wc-odds__th,
+  .wc-odds__td {
+    padding: 0.55rem 0.6rem;
+  }
+
+  .wc-odds__td--prob {
+    width: 38%;
+  }
+
+  .wc-odds__th--odds,
+  .wc-odds__td--odds {
+    display: none;
+  }
+}

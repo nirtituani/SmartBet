@@ -1,4 +1,4 @@
-import type { Match, MatchDetail, BookmakerOdds, StandingRow } from './types';
+import type { Match, MatchDetail, BookmakerOdds, StandingRow, WCOddsEntry } from './types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
 
@@ -32,6 +32,14 @@ export async function fetchMatchDetail(id: string): Promise<MatchDetail> {
     next: { revalidate: 43200 },  // revalidate twice a day, matching backend prediction cache
   });
   if (!res.ok) throw new Error(`Failed to fetch match ${id}: ${res.status}`);
+  return res.json();
+}
+
+export async function fetchWCWinnerOdds(): Promise<WCOddsEntry[]> {
+  const res = await fetch(`${API_BASE}/api/v1/odds/wc-winner`, {
+    next: { revalidate: 3600 },
+  });
+  if (!res.ok) throw new Error(`Failed to fetch WC winner odds: ${res.status}`);
   return res.json();
 }
 

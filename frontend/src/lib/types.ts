@@ -90,6 +90,13 @@ export interface MatchLineup {
   is_predicted: boolean;
 }
 
+export interface WCOddsEntry {
+  team: string;
+  flag: string;
+  probability: number;
+  decimal_odds: number;
+}
+
 export interface MatchDetail {
   match: Match;
   home_form: FormResult[];

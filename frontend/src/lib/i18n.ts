@@ -8,6 +8,7 @@ export const t = {
       bracket: 'Bracket',
       liveOdds: 'Live Odds',
       stats: 'Stats',
+      odds: 'WC Odds',
     },
     matchExplorer: {
       breadcrumb: 'Home / Matches',
@@ -19,6 +20,16 @@ export const t = {
       title: 'Groups',
       subtitle: 'FIFA World Cup 2026',
       cols: { team: 'Team', mp: 'MP', w: 'W', d: 'D', l: 'L', gf: 'GF', ga: 'GA', gd: 'GD', pts: 'Pts' },
+    },
+    odds: {
+      breadcrumb: 'Home / WC Odds',
+      title: 'World Cup Winner Odds',
+      subtitle: 'FIFA World Cup 2026',
+      rank: '#',
+      team: 'Team',
+      probability: 'Win Chance',
+      decimal_odds: 'Odds',
+      source: 'Powered by Polymarket prediction markets · updates every hour',
     },
     intel: {
       back: '← Explorer',
@@ -38,6 +49,7 @@ export const t = {
       bracket: 'עץ טורניר',
       liveOdds: 'הימורים חיים',
       stats: 'סטטיסטיקות',
+      odds: 'הימורי אלוף',
     },
     matchExplorer: {
       breadcrumb: 'בית / משחקים',
@@ -49,6 +61,16 @@ export const t = {
       title: 'בתים',
       subtitle: 'גביע העולם פיפ״א 2026',
       cols: { team: 'נבחרת', mp: 'מש׳', w: 'נצ׳', d: 'תיקו', l: 'הפ׳', gf: 'ש״ז', ga: 'ש״ח', gd: 'הפרש', pts: 'נק׳' },
+    },
+    odds: {
+      breadcrumb: 'בית / הימורי אלוף',
+      title: 'הימורים על אלוף העולם',
+      subtitle: 'גביע העולם פיפ״א 2026',
+      rank: '#',
+      team: 'נבחרת',
+      probability: 'סיכוי לנצח',
+      decimal_odds: 'מכפיל',
+      source: 'מופעל על ידי Polymarket · מתעדכן כל שעה',
     },
     intel: {
       back: '← חזרה',
