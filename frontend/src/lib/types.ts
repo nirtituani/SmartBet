@@ -97,6 +97,13 @@ export interface WCOddsEntry {
   decimal_odds: number;
 }
 
+export interface WCBookmakerOdds {
+  team: string;
+  flag: string;
+  best_odds: number;
+  bookmaker: string;
+}
+
 export interface MatchDetail {
   match: Match;
   home_form: FormResult[];

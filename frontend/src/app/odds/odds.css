@@ -29,6 +29,37 @@
   font-size: 0.875rem;
 }
 
+.wc-odds__tabs {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.wc-odds__tab {
+  padding: 0.45rem 1.25rem;
+  border-radius: 20px;
+  border: 1px solid rgba(99, 179, 237, 0.3);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: all 0.15s;
+}
+
+.wc-odds__tab:hover {
+  border-color: rgba(99, 179, 237, 0.6);
+  color: var(--text-primary);
+}
+
+.wc-odds__tab--active {
+  background: rgba(99, 179, 237, 0.15);
+  border-color: var(--neon-blue);
+  color: var(--neon-blue);
+}
+
 .wc-odds__loading {
   display: flex;
   justify-content: center;
@@ -185,6 +216,7 @@
 
 .wc-odds__td--odds {
   text-align: right;
+  width: 80px;
 }
 
 [dir='rtl'] .wc-odds__td--odds {
@@ -195,6 +227,13 @@
   font-family: monospace;
   font-size: 0.875rem;
   color: var(--neon-blue);
+}
+
+.wc-odds__th--bk { width: 120px; }
+
+.wc-odds__bk-name {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
 }
 
 .wc-odds__source {
@@ -224,7 +263,9 @@
   }
 
   .wc-odds__th--odds,
-  .wc-odds__td--odds {
+  .wc-odds__td--odds,
+  .wc-odds__th--bk,
+  .wc-odds__td--bk {
     display: none;
   }
 }

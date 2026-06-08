@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     football_api_host: str = "api-football-v1.p.rapidapi.com"
     wc26_api_key: str = ""
     wc26_api_host: str = "wc26-live-football-api.p.rapidapi.com"
+    odds_api_key: str = ""
 
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
