@@ -60,6 +60,7 @@ a { color: inherit; text-decoration: none; }
 .badge-win  { background: rgba(72, 187, 120, 0.15); color: var(--win);  border: 1px solid rgba(72,187,120,0.3); }
 .badge-draw { background: rgba(246,201,14,0.12);    color: var(--draw); border: 1px solid rgba(246,201,14,0.3);}
 .badge-loss { background: rgba(252,129,129,0.12);   color: var(--loss); border: 1px solid rgba(252,129,129,0.3);}
+.badge-pen  { background: rgba(99, 179, 237, 0.12); color: var(--neon-blue); border: 1px solid rgba(99,179,237,0.3); }
 
 .badge {
   display: inline-flex;
