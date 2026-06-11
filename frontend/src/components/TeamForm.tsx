@@ -78,11 +78,11 @@ export default function TeamForm({ teamName, teamFlag, form, lang = 'en', lineup
         <div className="info-card__rows">
           {form.map((r, i) => (
             <div key={i} className="form-row" data-tooltip={r.tournament || undefined}>
-              <span className={`badge badge-${r.result === 'W' && r.score_home === r.score_away ? 'pen' : r.result === 'W' ? 'win' : r.result === 'D' ? 'draw' : 'loss'}`}>
-                {r.result === 'W' && r.score_home === r.score_away ? 'P' : r.result}
+              <span className={`badge badge-${r.result === 'W' ? 'win' : r.result === 'D' ? 'draw' : 'loss'}`}>
+                {r.result}
               </span>
               <span className="form-row__score">
-                {r.score_home}–{r.score_away}
+                {r.score_home}–{r.score_away}{r.score_home === r.score_away && r.result !== 'D' ? ' (p)' : ''}
               </span>
               <span className="form-row__opponent">
                 {r.opponent_flag} {translateTeam(r.opponent, lang)}
