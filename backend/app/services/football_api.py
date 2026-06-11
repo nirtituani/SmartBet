@@ -746,9 +746,11 @@ async def _fetch_the_odds_api_h2h(home_name: str, away_name: str) -> list[Bookma
         key=lambda b: (0 if b["title"] in _PREFERRED_BOOKMAKERS else 1, b["title"]),
     )
     for bm in bookmakers:
-        title = bm["title"]
-        if title in seen or len(results) >= 8:
+        if len(results) >= 8:
             break
+        title = bm["title"]
+        if title in seen:
+            continue
         seen.add(title)
         market = next((m for m in bm.get("markets", []) if m["key"] == "h2h"), None)
         if not market:
