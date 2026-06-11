@@ -690,12 +690,12 @@
   background: rgba(8, 13, 26, 0.92);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(99, 179, 237, 0.2);
-  animation: slide-down 0.2s ease;
+  /* opacity + transform driven by inline style via scroll progress */
+  will-change: opacity, transform;
 }
 
-@keyframes slide-down {
-  from { transform: translateY(-100%); opacity: 0; }
-  to   { transform: translateY(0);     opacity: 1; }
+@media (max-width: 768px) {
+  .matchup-sticky { top: 56px; }
 }
 
 .matchup-sticky__team {

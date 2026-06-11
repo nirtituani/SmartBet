@@ -17,7 +17,7 @@ export default function MatchIntelClient({ matchId }: { matchId: string }) {
   const tr = t[lang].intel;
   const [detail, setDetail] = useState<MatchDetail | null>(null);
   const [rightTab, setRightTab] = useState<'prediction' | 'scores'>('prediction');
-  const [showSticky, setShowSticky] = useState(false);
+  const [stickyProgress, setStickyProgress] = useState(0);
   const matchupRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -26,12 +26,16 @@ export default function MatchIntelClient({ matchId }: { matchId: string }) {
 
   useEffect(() => {
     if (!matchupRef.current) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setShowSticky(!entry.isIntersecting),
-      { threshold: 0, rootMargin: '-64px 0px 0px 0px' }
-    );
-    observer.observe(matchupRef.current);
-    return () => observer.disconnect();
+    const HEADER_H = window.innerWidth <= 768 ? 56 : 64;
+    const onScroll = () => {
+      if (!matchupRef.current) return;
+      const rect = matchupRef.current.getBoundingClientRect();
+      const progress = Math.min(Math.max((HEADER_H - rect.top) / rect.height, 0), 1);
+      setStickyProgress(progress);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
   }, [detail]);
 
   if (!detail) return <main className="intel"><p style={{ color: 'white', padding: '2rem' }}>Loading...</p></main>;
@@ -40,19 +44,24 @@ export default function MatchIntelClient({ matchId }: { matchId: string }) {
 
   return (
     <main className="intel">
-      {showSticky && (
-        <div className="matchup-sticky">
-          <span className="matchup-sticky__team">
-            <span className="matchup-sticky__flag">{match.home_team.flag}</span>
-            <span className="matchup-sticky__name">{translateTeam(match.home_team.name, lang)}</span>
-          </span>
-          <span className="matchup-sticky__vs">VS</span>
-          <span className="matchup-sticky__team">
-            <span className="matchup-sticky__flag">{match.away_team.flag}</span>
-            <span className="matchup-sticky__name">{translateTeam(match.away_team.name, lang)}</span>
-          </span>
-        </div>
-      )}
+      <div
+        className="matchup-sticky"
+        style={{
+          opacity: stickyProgress,
+          transform: `translateY(${(1 - stickyProgress) * -100}%)`,
+          pointerEvents: stickyProgress > 0.05 ? 'auto' : 'none',
+        }}
+      >
+        <span className="matchup-sticky__team">
+          <span className="matchup-sticky__flag">{match.home_team.flag}</span>
+          <span className="matchup-sticky__name">{translateTeam(match.home_team.name, lang)}</span>
+        </span>
+        <span className="matchup-sticky__vs">VS</span>
+        <span className="matchup-sticky__team">
+          <span className="matchup-sticky__flag">{match.away_team.flag}</span>
+          <span className="matchup-sticky__name">{translateTeam(match.away_team.name, lang)}</span>
+        </span>
+      </div>
 
       <Link href="/match-explorer" className="intel__back-btn">{tr.back}</Link>
       <h1 className="intel__title">{tr.title}</h1>

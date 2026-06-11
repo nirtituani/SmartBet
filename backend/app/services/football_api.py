@@ -671,6 +671,98 @@ async def _load_af_fixture_map() -> None:
     _af_fixture_map_expires = time.time() + 86400
 
 
+_THE_ODDS_API_H2H_URL = "https://api.the-odds-api.com/v4/sports/soccer_fifa_world_cup/odds/"
+
+_THE_ODDS_API_NAME_MAP: dict[str, str] = {
+    "Czech Republic": "Czechia",
+    "United States": "USA",
+    "Bosnia and Herzegovina": "Bosnia & Herzegovina",
+    "Bosnia-Herzegovina": "Bosnia & Herzegovina",
+    "DR Congo": "DR Congo",
+    "Congo DR": "DR Congo",
+    "Côte d'Ivoire": "Ivory Coast",
+    "Cote d'Ivoire": "Ivory Coast",
+}
+
+_PREFERRED_BOOKMAKERS = {
+    "Bet365", "William Hill", "Unibet", "Paddy Power", "Bwin",
+    "Betfair", "1xBet", "Betway", "Pinnacle", "Coral", "Sky Bet",
+}
+
+_the_odds_h2h_cache: list[dict] = []
+_the_odds_h2h_expires: float = 0.0
+
+
+async def _load_the_odds_h2h() -> None:
+    global _the_odds_h2h_cache, _the_odds_h2h_expires
+    if not settings.odds_api_key or time.time() < _the_odds_h2h_expires:
+        return
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            r = await client.get(
+                _THE_ODDS_API_H2H_URL,
+                params={
+                    "apiKey": settings.odds_api_key,
+                    "regions": "eu,uk",
+                    "markets": "h2h",
+                    "oddsFormat": "decimal",
+                },
+            )
+            r.raise_for_status()
+            _the_odds_h2h_cache = r.json()
+            _the_odds_h2h_expires = time.time() + 1800  # 30-min cache
+    except Exception:
+        pass
+
+
+async def _fetch_the_odds_api_h2h(home_name: str, away_name: str) -> list[BookmakerOdds] | None:
+    if not settings.odds_api_key:
+        return None
+    await _load_the_odds_h2h()
+    if not _the_odds_h2h_cache:
+        return None
+
+    def normalise(n: str) -> str:
+        return _THE_ODDS_API_NAME_MAP.get(n, n).lower()
+
+    home_norm = normalise(home_name)
+    away_norm = normalise(away_name)
+
+    event = next(
+        (
+            e for e in _the_odds_h2h_cache
+            if normalise(e["home_team"]) == home_norm and normalise(e["away_team"]) == away_norm
+        ),
+        None,
+    )
+    if not event:
+        return None
+
+    results: list[BookmakerOdds] = []
+    seen: set[str] = set()
+    # Preferred bookmakers first, then fill up to 8
+    bookmakers = sorted(
+        event.get("bookmakers", []),
+        key=lambda b: (0 if b["title"] in _PREFERRED_BOOKMAKERS else 1, b["title"]),
+    )
+    for bm in bookmakers:
+        title = bm["title"]
+        if title in seen or len(results) >= 8:
+            break
+        seen.add(title)
+        market = next((m for m in bm.get("markets", []) if m["key"] == "h2h"), None)
+        if not market:
+            continue
+        outcomes = {o["name"]: o["price"] for o in market["outcomes"]}
+        home_price = outcomes.get(event["home_team"], 0.0)
+        away_price = outcomes.get(event["away_team"], 0.0)
+        draw_price = outcomes.get("Draw", 0.0)
+        if home_price and away_price and draw_price:
+            results.append(BookmakerOdds(bookmaker=title, home=home_price, draw=draw_price, away=away_price))
+
+    return results or None
+
+
 async def _fetch_odds_api_football(
     home_name: str, away_name: str
 ) -> tuple[list[BookmakerOdds], list[ScoreOdd]] | None:
@@ -996,8 +1088,9 @@ async def get_match_detail(fixture_id: int) -> MatchDetail | None:
         home_form = [FormResult(**r) for r in home_form_cached] if home_form_cached else _mock_form(match.home_team)
         away_form = [FormResult(**r) for r in away_form_cached] if away_form_cached else _mock_form(match.away_team)
         h2h = [H2HResult(**r) for r in h2h_cached] if h2h_cached is not None else _mock_h2h(match.home_team, match.away_team)
+        real_odds = await _fetch_the_odds_api_h2h(home_name, away_name)
         odds_result = await _fetch_odds_api_football(home_name, away_name)
-        odds = odds_result[0] if odds_result else _mock_odds_comparison(match)
+        odds = real_odds or (odds_result[0] if odds_result else _mock_odds_comparison(match))
         exact_scores = odds_result[1] if odds_result else _mock_exact_scores(match)
 
         lineup = None
@@ -1036,8 +1129,9 @@ async def get_match_detail(fixture_id: int) -> MatchDetail | None:
         home_form = [_map_fixture_to_form(f, match.home_team.api_id) for f in home_raw[:5]]
         away_form = [_map_fixture_to_form(f, match.away_team.api_id) for f in away_raw[:5]]
         h2h = [_map_fixture_to_h2h(f) for f in h2h_raw[:5]]
+        real_odds = await _fetch_the_odds_api_h2h(match.home_team.name, match.away_team.name)
         odds_result = await _fetch_odds_api_football(match.home_team.name, match.away_team.name)
-        odds = odds_result[0] if odds_result else _mock_odds_comparison(match)
+        odds = real_odds or (odds_result[0] if odds_result else _mock_odds_comparison(match))
         exact_scores = odds_result[1] if odds_result else _mock_exact_scores(match)
         return MatchDetail(
             match=match,
