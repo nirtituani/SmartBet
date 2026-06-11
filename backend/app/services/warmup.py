@@ -21,7 +21,7 @@ async def _compute_match(fixture_id: int, ttl: int, force: bool = False) -> None
         logger.warning("[warmup] daily limit $%.2f reached, skipping fixture %d", DAILY_LIMIT_USD, fixture_id)
         return
 
-    cache_key = f"match_detail_v3:{fixture_id}"
+    cache_key = f"match_detail_v4:{fixture_id}"
     if not force:
         cached = await get_cached(cache_key)
         if cached and cached.get("lineup") and cached.get("prediction_updated_at"):
@@ -65,7 +65,7 @@ async def full_warmup() -> None:
 
     needs_compute = []
     for m in matches_sorted:
-        c = await get_cached(f"match_detail_v3:{m.id}") or {}
+        c = await get_cached(f"match_detail_v4:{m.id}") or {}
         if not c.get("lineup") or not c.get("prediction_updated_at"):
             needs_compute.append(m)
     uncached = needs_compute
