@@ -1,10 +1,9 @@
 """Daily spend tracker stored in Redis (falls back to in-memory)."""
-import time
 from datetime import date
 
 from app.core.cache import _redis
 
-DAILY_LIMIT_USD = 1.00   # hard cap per day — change this to adjust
+DAILY_LIMIT_USD = 5.00   # hard cap per day — change this to adjust
 COST_PER_MATCH = 0.05    # conservative estimate per prediction + lineup call
 
 _mem_spend: dict[str, float] = {}

@@ -24,7 +24,7 @@ async def _compute_match(fixture_id: int, ttl: int, force: bool = False) -> None
     cache_key = f"match_detail_v2:{fixture_id}"
     if not force:
         cached = await get_cached(cache_key)
-        if cached and "lineup" in cached:
+        if cached and cached.get("lineup") and cached.get("prediction_updated_at"):
             logger.info("[warmup] fixture %d already cached, skipping", fixture_id)
             return
 
@@ -63,10 +63,12 @@ async def full_warmup() -> None:
     matches = await get_upcoming_matches()
     matches_sorted = sorted(matches, key=lambda m: m.kickoff_date)
 
-    uncached = [
-        m for m in matches_sorted
-        if not (await get_cached(f"match_detail_v2:{m.id}") or {}).get("lineup")
-    ]
+    needs_compute = []
+    for m in matches_sorted:
+        c = await get_cached(f"match_detail_v2:{m.id}") or {}
+        if not c.get("lineup") or not c.get("prediction_updated_at"):
+            needs_compute.append(m)
+    uncached = needs_compute
 
     if not uncached:
         logger.info("[warmup] all %d matches cached — skipping full warmup", len(matches_sorted))
