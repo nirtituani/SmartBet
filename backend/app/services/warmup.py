@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from datetime import date
+from datetime import date, datetime, timezone
 
 from app.core.budget import COST_PER_MATCH, DAILY_LIMIT_USD, is_over_limit, record_spend
 from app.core.cache import get_cached, set_cached
@@ -37,6 +37,7 @@ async def _compute_match(fixture_id: int, ttl: int, force: bool = False) -> None
         detail.prediction = await get_prediction(
             detail.match, detail.home_form, detail.away_form, detail.h2h, detail.odds_comparison
         )
+        detail.prediction_updated_at = datetime.now(timezone.utc).isoformat()
         await set_cached(cache_key, detail.model_dump(), ttl=ttl)
         await record_spend(COST_PER_MATCH)
         logger.info("[warmup] fixture %d done (estimated spend today: $%.2f)", fixture_id, await _get_spend_safe())

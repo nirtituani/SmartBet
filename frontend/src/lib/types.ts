@@ -113,4 +113,5 @@ export interface MatchDetail {
   exact_scores: ScoreOdd[];
   prediction: AIPrediction | null;
   lineup: MatchLineup | null;
+  prediction_updated_at: string | null;
 }

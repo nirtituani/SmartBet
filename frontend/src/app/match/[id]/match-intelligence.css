@@ -674,6 +674,14 @@
   letter-spacing: 0.02em;
 }
 
+.intel__prediction-updated {
+  margin-top: 0.5rem;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  opacity: 0.65;
+  text-align: center;
+}
+
 @media (max-width: 768px) {
   .intel {
     padding: 20px 16px;

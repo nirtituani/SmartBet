@@ -24,7 +24,7 @@ export default function MatchIntelClient({ matchId }: { matchId: string }) {
 
   if (!detail) return <main className="intel"><p style={{ color: 'white', padding: '2rem' }}>Loading...</p></main>;
 
-  const { match, home_form, away_form, h2h, odds_comparison, exact_scores, prediction, lineup } = detail;
+  const { match, home_form, away_form, h2h, odds_comparison, exact_scores, prediction, lineup, prediction_updated_at } = detail;
 
   return (
     <main className="intel">
@@ -68,7 +68,20 @@ export default function MatchIntelClient({ matchId }: { matchId: string }) {
               {lang === 'he' ? 'תוצאה מדויקת' : 'Correct Score'}
             </button>
           </div>
-          {rightTab === 'prediction' && prediction && <AIPrediction prediction={prediction} />}
+          {rightTab === 'prediction' && prediction && (
+            <>
+              <AIPrediction prediction={prediction} />
+              {prediction_updated_at && (
+                <p className="intel__prediction-updated">
+                  {lang === 'he' ? 'עודכן לאחרונה:' : 'Last updated:'}{' '}
+                  {new Date(prediction_updated_at).toLocaleString(lang === 'he' ? 'he-IL' : 'en-GB', {
+                    day: 'numeric', month: 'short', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit', timeZone: 'UTC', timeZoneName: 'short',
+                  })}
+                </p>
+              )}
+            </>
+          )}
           {rightTab === 'scores' && <ExactScores scores={exact_scores} lang={lang} />}
         </div>
       </div>

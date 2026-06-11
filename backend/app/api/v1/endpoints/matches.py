@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, HTTPException
 
 from app.core.cache import get_cached, set_cached
@@ -35,5 +37,6 @@ async def match_predictions(fixture_id: int):
     detail.prediction = await get_prediction(
         detail.match, detail.home_form, detail.away_form, detail.h2h, detail.odds_comparison
     )
+    detail.prediction_updated_at = datetime.now(timezone.utc).isoformat()
     await set_cached(cache_key, detail.model_dump(), ttl=43200)  # 12h — refresh twice a day
     return detail

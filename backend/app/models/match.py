@@ -117,3 +117,4 @@ class MatchDetail(BaseModel):
     exact_scores: list[ScoreOdd] = []
     prediction: AIPrediction | None = None
     lineup: MatchLineup | None = None
+    prediction_updated_at: str | None = None
