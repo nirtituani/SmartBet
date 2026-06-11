@@ -216,6 +216,67 @@ def calculate_group_standings(results: list[dict]) -> dict[str, list[StandingRow
         for g, teams in sorted(groups.items())
     }
 
+
+# ── Live standings from worldcup26.ir ─────────────────────────────────────────
+_WC26_IR_BASE = "https://worldcup26.ir"
+
+_WC26_IR_NAME_MAP: dict[str, str] = {
+    "United States": "USA",
+    "Bosnia and Herzegovina": "Bosnia & Herzegovina",
+    "Bosnia-Herzegovina": "Bosnia & Herzegovina",
+    "DR Congo": "DR Congo",
+    "Congo DR": "DR Congo",
+    "Côte d'Ivoire": "Ivory Coast",
+    "Cote d'Ivoire": "Ivory Coast",
+}
+
+
+async def fetch_group_standings() -> dict[str, list[StandingRow]]:
+    """Fetch live group standings from worldcup26.ir; falls back to zeroed standings."""
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            teams_resp, groups_resp = await asyncio.gather(
+                client.get(f"{_WC26_IR_BASE}/get/teams"),
+                client.get(f"{_WC26_IR_BASE}/get/groups"),
+            )
+            teams_resp.raise_for_status()
+            groups_resp.raise_for_status()
+
+        id_to_name: dict[str, str] = {
+            t["id"]: t["name_en"]
+            for t in teams_resp.json().get("teams", [])
+        }
+
+        result: dict[str, list[StandingRow]] = {}
+        for group in sorted(groups_resp.json().get("groups", []), key=lambda g: g["name"]):
+            group_label = f"Group {group['name']}"
+            rows: list[StandingRow] = []
+            for entry in group.get("teams", []):
+                raw_name = id_to_name.get(entry.get("team_id", ""), "")
+                if not raw_name:
+                    continue
+                name = _WC26_IR_NAME_MAP.get(raw_name, raw_name)
+                flag, rank = _TEAM_META.get(name, ("🏳️", 99))
+                rows.append(StandingRow(
+                    name=name, flag=flag, fifa_rank=rank,
+                    mp=int(entry.get("mp") or 0),
+                    w=int(entry.get("w") or 0),
+                    d=int(entry.get("d") or 0),
+                    l=int(entry.get("l") or 0),
+                    gf=int(entry.get("gf") or 0),
+                    ga=int(entry.get("ga") or 0),
+                    gd=int(entry.get("gd") or 0),
+                    pts=int(entry.get("pts") or 0),
+                ))
+            rows.sort(key=lambda t: (-t.pts, -t.gd, -t.gf, t.fifa_rank))
+            result[group_label] = rows
+        return result
+
+    except Exception:
+        # Fall back to zeroed standings from embedded fixture list
+        return calculate_group_standings([])
+
+
 # ── ESPN team IDs for all 48 WC 2026 teams ────────────────────────────────────
 _ESPN_TEAM_IDS: dict[str, int] = {
     "Algeria": 624, "Argentina": 202, "Australia": 628, "Austria": 474,

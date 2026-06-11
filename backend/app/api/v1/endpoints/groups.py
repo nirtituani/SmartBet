@@ -2,17 +2,16 @@ from fastapi import APIRouter
 
 from app.core.cache import get_cached, set_cached, delete_cached
 from app.models.match import StandingRow
-from app.services.football_api import _fetch_wc_results, calculate_group_standings
+from app.services.football_api import fetch_group_standings
 
 router = APIRouter(prefix="/groups", tags=["groups"])
 
-_CACHE_KEY = "group_standings"
-_CACHE_TTL = 7 * 24 * 3600  # keep until manually refreshed (1 week fallback)
+_CACHE_KEY = "group_standings_v2"
+_CACHE_TTL = 2 * 3600  # 2 hours — refresh frequently during the tournament
 
 
 async def _build_and_cache() -> dict[str, list[StandingRow]]:
-    results = await _fetch_wc_results()
-    standings = calculate_group_standings(results)
+    standings = await fetch_group_standings()
     await set_cached(
         _CACHE_KEY,
         {g: [r.model_dump() for r in rows] for g, rows in standings.items()},
