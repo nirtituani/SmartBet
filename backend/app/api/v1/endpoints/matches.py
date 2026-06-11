@@ -25,7 +25,7 @@ async def upcoming_matches():
 
 @router.get("/{fixture_id}/predictions", response_model=MatchDetail)
 async def match_predictions(fixture_id: int):
-    cache_key = f"match_detail_v2:{fixture_id}"
+    cache_key = f"match_detail_v3:{fixture_id}"
     cached = await get_cached(cache_key)
     if cached and 'lineup' in cached:
         return MatchDetail(**cached)
