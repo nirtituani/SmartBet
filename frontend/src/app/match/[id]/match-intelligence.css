@@ -674,6 +674,67 @@
   letter-spacing: 0.02em;
 }
 
+/* ── Sticky matchup bar ──────────────────────────────────────────────────── */
+.matchup-sticky {
+  position: fixed;
+  top: 64px;
+  left: 0;
+  right: 0;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  height: 44px;
+  padding: 0 16px;
+  background: rgba(8, 13, 26, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(99, 179, 237, 0.2);
+  animation: slide-down 0.2s ease;
+}
+
+@keyframes slide-down {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+
+.matchup-sticky__team {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.matchup-sticky__flag {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.matchup-sticky__name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 110px;
+}
+
+.matchup-sticky__vs {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--neon-blue);
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .matchup-sticky__name {
+    max-width: 72px;
+    font-size: 0.75rem;
+  }
+}
+
 .intel__prediction-updated {
   margin-top: 0.5rem;
   font-size: 0.7rem;

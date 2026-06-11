@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import TeamForm from '@/components/TeamForm';
 import H2HHistory from '@/components/H2HHistory';
@@ -17,10 +17,22 @@ export default function MatchIntelClient({ matchId }: { matchId: string }) {
   const tr = t[lang].intel;
   const [detail, setDetail] = useState<MatchDetail | null>(null);
   const [rightTab, setRightTab] = useState<'prediction' | 'scores'>('prediction');
+  const [showSticky, setShowSticky] = useState(false);
+  const matchupRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchMatchDetail(matchId).then(setDetail).catch(() => {});
   }, [matchId]);
+
+  useEffect(() => {
+    if (!matchupRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowSticky(!entry.isIntersecting),
+      { threshold: 0, rootMargin: '-64px 0px 0px 0px' }
+    );
+    observer.observe(matchupRef.current);
+    return () => observer.disconnect();
+  }, [detail]);
 
   if (!detail) return <main className="intel"><p style={{ color: 'white', padding: '2rem' }}>Loading...</p></main>;
 
@@ -28,10 +40,24 @@ export default function MatchIntelClient({ matchId }: { matchId: string }) {
 
   return (
     <main className="intel">
+      {showSticky && (
+        <div className="matchup-sticky">
+          <span className="matchup-sticky__team">
+            <span className="matchup-sticky__flag">{match.home_team.flag}</span>
+            <span className="matchup-sticky__name">{translateTeam(match.home_team.name, lang)}</span>
+          </span>
+          <span className="matchup-sticky__vs">VS</span>
+          <span className="matchup-sticky__team">
+            <span className="matchup-sticky__flag">{match.away_team.flag}</span>
+            <span className="matchup-sticky__name">{translateTeam(match.away_team.name, lang)}</span>
+          </span>
+        </div>
+      )}
+
       <Link href="/match-explorer" className="intel__back-btn">{tr.back}</Link>
       <h1 className="intel__title">{tr.title}</h1>
 
-      <div className="matchup glass-card glass-card-blue">
+      <div ref={matchupRef} className="matchup glass-card glass-card-blue">
         <div className="matchup__team">
           <span className="matchup__flag">{match.home_team.flag}</span>
           <span className="matchup__name">{translateTeam(match.home_team.name, lang)}</span>
