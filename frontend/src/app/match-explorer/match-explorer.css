@@ -155,7 +155,7 @@
 /* Tournament Progress */
 .tournament-progress {
   margin-bottom: 40px;
-  padding: 22px 24px 20px;
+  padding: 14px 18px 14px;
   border-top: 2px solid transparent;
   background-clip: padding-box;
   position: relative;
@@ -175,7 +175,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .tournament-progress__title {
@@ -196,11 +196,11 @@
 }
 
 .tournament-progress__bar {
-  height: 6px;
+  height: 4px;
   background: rgba(255, 255, 255, 0.07);
-  border-radius: 3px;
+  border-radius: 2px;
   overflow: hidden;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 
 .tournament-progress__fill {
@@ -214,7 +214,7 @@
 .tournament-progress__stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 8px;
 }
 
 .tournament-progress__divider {
@@ -225,11 +225,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 10px;
-  padding: 12px 16px;
+  border-radius: 8px;
+  padding: 7px 12px;
 }
 
 .tournament-progress__stat:first-child .tournament-progress__stat-num {
@@ -241,7 +241,7 @@
 }
 
 .tournament-progress__stat-num {
-  font-size: 28px;
+  font-size: 20px;
   font-weight: 800;
   line-height: 1;
   font-variant-numeric: tabular-nums;
