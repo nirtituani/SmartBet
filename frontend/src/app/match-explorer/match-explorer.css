@@ -152,6 +152,78 @@
   justify-content: center;
 }
 
+/* Tournament Progress */
+.tournament-progress {
+  margin-bottom: 40px;
+  padding: 20px 24px;
+}
+
+.tournament-progress__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.tournament-progress__title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.2px;
+}
+
+.tournament-progress__pct {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--neon-blue);
+}
+
+.tournament-progress__bar {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.tournament-progress__fill {
+  height: 100%;
+  background: var(--neon-blue);
+  border-radius: 2px;
+  transition: width 0.6s ease;
+}
+
+.tournament-progress__stats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tournament-progress__stat {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.tournament-progress__stat-num {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.tournament-progress__stat-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.tournament-progress__divider {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
 
 @media (max-width: 768px) {
   .explorer {
