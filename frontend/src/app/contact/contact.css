@@ -1,0 +1,126 @@
+.contact {
+  max-width: 560px;
+  margin: 60px auto;
+  padding: 0 24px;
+  animation: fade-in 0.3s ease;
+}
+
+.contact__card {
+  padding: 36px;
+}
+
+.contact__title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+
+.contact__subtitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 28px;
+}
+
+.contact__form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.contact__categories {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.contact__cat-btn {
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 20px;
+  border: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.contact__cat-btn--active {
+  color: var(--neon-blue);
+  border-color: var(--border-neon-blue);
+  background: rgba(99, 179, 237, 0.08);
+}
+
+.contact__input,
+.contact__textarea {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--text-primary);
+  font-family: inherit;
+  width: 100%;
+  transition: border-color 0.15s;
+  resize: vertical;
+}
+
+.contact__input::placeholder,
+.contact__textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.contact__input:focus,
+.contact__textarea:focus {
+  outline: none;
+  border-color: var(--border-neon-blue);
+}
+
+.contact__submit {
+  padding: 10px 24px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-radius: 8px;
+  border: 1px solid var(--border-neon-blue);
+  background: rgba(99, 179, 237, 0.1);
+  color: var(--neon-blue);
+  cursor: pointer;
+  transition: background 0.15s;
+  align-self: flex-end;
+}
+
+.contact__submit:hover:not(:disabled) {
+  background: rgba(99, 179, 237, 0.2);
+}
+
+.contact__submit:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.contact__success {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--win);
+  text-align: center;
+  padding: 24px 0;
+}
+
+.contact__error {
+  font-size: 12px;
+  color: var(--loss);
+}
+
+@media (max-width: 768px) {
+  .contact {
+    margin: 24px auto;
+  }
+
+  .contact__card {
+    padding: 24px;
+  }
+}

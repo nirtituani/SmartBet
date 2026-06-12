@@ -59,9 +59,7 @@ export default function Header() {
               onClick={() => setLang('he')}
             >HE</button>
           </div>
-          <button className="header__icon-btn" aria-label="Search">🔍</button>
-          <button className="header__icon-btn" aria-label="Notifications">🔔</button>
-          <div className="header__avatar" aria-label="Profile">U</div>
+          <Link href="/contact" className="header__avatar" aria-label="Contact">NT</Link>
         </div>
 
       </div>
