@@ -13,7 +13,6 @@ _CONCURRENCY = 3
 _FULL_TTL = 7 * 24 * 60 * 60   # 7 days for the full one-time load
 _DAILY_TTL = 24 * 60 * 60       # 24 hours for daily-refreshed matches
 _DAILY_INTERVAL = 24 * 60 * 60  # seconds between daily refreshes
-_DAILY_REFRESH_COUNT = 3        # only refresh the next N upcoming matches
 _FRESH_THRESHOLD_HOURS = 20     # skip daily refresh if prediction is newer than this
 
 
@@ -90,44 +89,60 @@ async def full_warmup() -> None:
 
 
 async def daily_refresh() -> None:
-    """Refresh the next N upcoming matches every 24 hours, skipping fresh ones."""
-    today = date.today().isoformat()
-    logger.info("[warmup] daily refresh for %s", today)
+    """Refresh upcoming matches every 24 hours.
+
+    Priority 1 — all matches in the next 48 hours (tomorrow's games must be fresh).
+    Priority 2 — a few more from the broader schedule to warm the cache ahead of time.
+    Skips any match whose prediction is newer than _FRESH_THRESHOLD_HOURS.
+    """
+    from datetime import timedelta
+    today = date.today()
+    tomorrow = (today + timedelta(days=2)).isoformat()
+    today_str = today.isoformat()
+
+    logger.info("[warmup] daily refresh for %s", today_str)
     matches = await get_upcoming_matches()
-    next_n = sorted(
-        [m for m in matches if m.kickoff_date >= today],
-        key=lambda m: m.kickoff_date
-    )[:_DAILY_REFRESH_COUNT]
-    if not next_n:
+    sorted_matches = sorted(
+        [m for m in matches if m.kickoff_date >= today_str],
+        key=lambda m: m.kickoff_date,
+    )
+
+    # Priority: matches in the next 48h first, then the next 5 beyond that
+    priority = [m for m in sorted_matches if m.kickoff_date <= tomorrow]
+    extra = [m for m in sorted_matches if m.kickoff_date > tomorrow][:5]
+    candidates = priority + extra
+
+    if not candidates:
         logger.info("[warmup] no upcoming matches to refresh")
         return
 
     stale = []
     threshold = _FRESH_THRESHOLD_HOURS * 3600
     now = datetime.now(timezone.utc).timestamp()
-    for m in next_n:
+    for m in candidates:
         cached = await get_cached(f"match_detail_v4:{m.id}") or {}
         updated_at = cached.get("prediction_updated_at")
         if updated_at:
             try:
                 age = now - datetime.fromisoformat(updated_at).timestamp()
                 if age < threshold:
-                    logger.info("[warmup] fixture %d prediction is fresh (%.1fh old), skipping", m.id, age / 3600)
+                    logger.info("[warmup] fixture %d fresh (%.1fh old), skipping", m.id, age / 3600)
                     continue
             except Exception:
                 pass
         stale.append(m)
 
     if not stale:
-        logger.info("[warmup] all %d matches have fresh predictions, skipping daily refresh", len(next_n))
+        logger.info("[warmup] all %d candidates have fresh predictions, nothing to do", len(candidates))
         return
 
+    logger.info("[warmup] daily refresh: %d stale matches (%d priority + extra)", len(stale), len(priority))
     sem = asyncio.Semaphore(_CONCURRENCY)
     await asyncio.gather(*[
         _run_with_semaphore(m.id, _DAILY_TTL, force=True, sem=sem)
         for m in stale
     ])
-    logger.info("[warmup] daily refresh complete (%d/%d matches refreshed)", len(stale), len(next_n))
+    logger.info("[warmup] daily refresh complete (%d refreshed)", len(stale))
 
 
 async def _scores_loop() -> None:
