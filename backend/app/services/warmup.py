@@ -59,9 +59,13 @@ async def _run_with_semaphore(fixture_id: int, ttl: int, force: bool, sem: async
 
 
 async def full_warmup() -> None:
-    """Startup: warm only uncached matches. Skips entirely if all are cached."""
+    """Startup: warm only uncached upcoming matches. Never spends AI on finished games."""
     matches = await get_upcoming_matches()
-    matches_sorted = sorted(matches, key=lambda m: m.kickoff_date)
+    today = date.today().isoformat()
+    matches_sorted = sorted(
+        [m for m in matches if m.kickoff_date >= today],
+        key=lambda m: m.kickoff_date,
+    )
 
     needs_compute = []
     for m in matches_sorted:
