@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException
 
+from app.core.budget import COST_PER_MATCH, is_over_limit, record_spend
 from app.core.cache import get_cached, set_cached
 from app.models.match import Match, MatchDetail
 from app.services.ai_service import get_prediction
@@ -34,9 +35,13 @@ async def match_predictions(fixture_id: int):
     if detail is None:
         raise HTTPException(status_code=404, detail="Match not found")
 
+    if await is_over_limit():
+        raise HTTPException(status_code=503, detail="Daily AI budget reached, try again tomorrow")
+
     detail.prediction = await get_prediction(
         detail.match, detail.home_form, detail.away_form, detail.h2h, detail.odds_comparison
     )
     detail.prediction_updated_at = datetime.now(timezone.utc).isoformat()
+    await record_spend(COST_PER_MATCH)
     await set_cached(cache_key, detail.model_dump(), ttl=43200)  # 12h — refresh twice a day
     return detail
