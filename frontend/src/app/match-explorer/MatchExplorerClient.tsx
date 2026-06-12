@@ -9,17 +9,28 @@ import type { Match } from '@/lib/types';
 
 function MatchCard({ match }: { match: Match }) {
   const { lang } = useLanguage();
+  const finished = match.status === 'finished';
+  const live = match.status === 'live';
+  const hasScore = match.score_home !== null && match.score_away !== null;
+
   return (
-    <Link href={`/match/${match.id}`} className="match-card glass-card">
+    <Link href={`/match/${match.id}`} className={`match-card glass-card${finished ? ' match-card--finished' : ''}${live ? ' match-card--live' : ''}`}>
       <div className="match-card__team">
         <span className="match-card__flag">{match.home_team.flag}</span>
         <span className="match-card__team-name">{translateTeam(match.home_team.name, lang)}</span>
       </div>
       <div className="match-card__center">
-        <span className="match-card__kickoff">
-          {match.kickoff_time}
+        {hasScore ? (
+          <span className={`match-card__score${live ? ' match-card__score--live' : ''}`}>
+            {match.score_home} – {match.score_away}
+          </span>
+        ) : (
+          <span className="match-card__kickoff">{match.kickoff_time}</span>
+        )}
+        <span className="match-card__meta">
+          {live && <span className="match-card__live-dot" />}
+          {translateGroup(match.group, lang)}
         </span>
-        <span className="match-card__meta">{translateGroup(match.group, lang)}</span>
       </div>
       <div className="match-card__team match-card__team--away">
         <span className="match-card__flag">{match.away_team.flag}</span>

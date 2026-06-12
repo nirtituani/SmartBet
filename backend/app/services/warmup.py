@@ -5,7 +5,7 @@ from datetime import date, datetime, timezone
 from app.core.budget import COST_PER_MATCH, DAILY_LIMIT_USD, is_over_limit, record_spend
 from app.core.cache import get_cached, set_cached
 from app.services.ai_service import get_prediction
-from app.services.football_api import get_match_detail, get_upcoming_matches
+from app.services.football_api import get_match_detail, get_upcoming_matches, refresh_scores_today
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -104,8 +104,20 @@ async def daily_refresh() -> None:
     logger.info("[warmup] daily refresh complete (%d matches)", len(next_5))
 
 
+async def _scores_loop() -> None:
+    """Refresh ESPN scores every 2 hours to pick up finished game results."""
+    while True:
+        await asyncio.sleep(7200)
+        try:
+            await refresh_scores_today()
+        except Exception:
+            pass
+
+
 async def warm_cache() -> None:
+    await refresh_scores_today()
     await full_warmup()
+    asyncio.create_task(_scores_loop())
     while True:
         await asyncio.sleep(_DAILY_INTERVAL)
         await daily_refresh()

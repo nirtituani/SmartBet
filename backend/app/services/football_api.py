@@ -1,7 +1,7 @@
 import asyncio
 import random
 import time
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from typing import Any
 
 import httpx
@@ -1011,23 +1011,117 @@ def _sort_matches(matches: list[Match]) -> list[Match]:
     return sorted(matches, key=lambda m: (m.kickoff_date, m.kickoff_time))
 
 
+_ESPN_SCORES_CACHE: dict[str, tuple[float, tuple[int | None, int | None, str]]] = {}
+# key: "HomeTeam|AwayTeam"  value: (expires_at, (score_home, score_away, status))
+
+_ESPN_SCOREBOARD = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard"
+
+_ESPN_MATCH_NAME_MAP: dict[str, str] = {
+    "Bosnia-Herz": "Bosnia & Herzegovina",
+    "Bosnia & Herzegovina": "Bosnia & Herzegovina",
+    "United States": "USA",
+    "Czech Republic": "Czechia",
+    "Czechia": "Czechia",
+}
+
+
+async def fetch_scores_for_date(date_str: str) -> None:
+    """Fetch ESPN scoreboard for a YYYYMMDD date string and populate _ESPN_SCORES_CACHE."""
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            r = await client.get(
+                _ESPN_SCOREBOARD,
+                params={"dates": date_str},
+                headers={"User-Agent": "Mozilla/5.0"},
+            )
+            r.raise_for_status()
+            data = r.json()
+        expires = time.time() + 600  # 10-min TTL per date
+        for event in data.get("events", []):
+            comp = event.get("competitions", [{}])[0]
+            competitors = comp.get("competitors", [])
+            if len(competitors) < 2:
+                continue
+            status_type = comp.get("status", {}).get("type", {})
+            state = status_type.get("state", "pre")
+            completed = status_type.get("completed", False)
+
+            def _norm(n: str) -> str:
+                return _ESPN_MATCH_NAME_MAP.get(n, n)
+
+            home = next((c for c in competitors if c.get("homeAway") == "home"), competitors[0])
+            away = next((c for c in competitors if c.get("homeAway") == "away"), competitors[1])
+            home_name = _norm(home["team"].get("shortDisplayName", ""))
+            away_name = _norm(away["team"].get("shortDisplayName", ""))
+
+            if completed or state == "post":
+                try:
+                    sh = int(float(home.get("score", 0)))
+                    sa = int(float(away.get("score", 0)))
+                except (ValueError, TypeError):
+                    sh, sa = None, None
+                status = "finished"
+            elif state == "in":
+                try:
+                    sh = int(float(home.get("score", 0)))
+                    sa = int(float(away.get("score", 0)))
+                except (ValueError, TypeError):
+                    sh, sa = None, None
+                status = "live"
+            else:
+                sh, sa, status = None, None, "scheduled"
+
+            key = f"{home_name}|{away_name}"
+            _ESPN_SCORES_CACHE[key] = (expires, (sh, sa, status))
+    except Exception:
+        pass
+
+
+async def refresh_scores_today() -> None:
+    """Refresh scores for today and yesterday."""
+    today = datetime.now(timezone.utc).date()
+    yesterday = today - timedelta(days=1)
+    await asyncio.gather(
+        fetch_scores_for_date(today.strftime("%Y%m%d")),
+        fetch_scores_for_date(yesterday.strftime("%Y%m%d")),
+    )
+
+
+def _get_cached_score(home_name: str, away_name: str) -> tuple[int | None, int | None, str]:
+    key = f"{home_name}|{away_name}"
+    entry = _ESPN_SCORES_CACHE.get(key)
+    if entry and time.time() < entry[0]:
+        return entry[1]
+    return None, None, "scheduled"
+
+
+def _merge_scores(matches: list[Match]) -> list[Match]:
+    result = []
+    for m in matches:
+        sh, sa, status = _get_cached_score(m.home_team.name, m.away_team.name)
+        if sh is not None:
+            m = m.model_copy(update={"score_home": sh, "score_away": sa, "status": status})
+        result.append(m)
+    return result
+
+
 async def get_upcoming_matches() -> list[Match]:
     if settings.wc26_api_key:
         try:
             fixtures = await _fetch_wc26_matches()
             if fixtures:
-                return _sort_matches([_map_wc26_to_match(f) for f in fixtures])
+                return _merge_scores(_sort_matches([_map_wc26_to_match(f) for f in fixtures]))
         except Exception:
             pass
     if not settings.football_api_key:
-        return _mock_upcoming_matches()
+        return _merge_scores(_mock_upcoming_matches())
     try:
         fixtures = await _fetch_upcoming_fixtures()
         if not fixtures:
-            return _mock_upcoming_matches()
-        return _sort_matches([_map_fixture_to_match(f, idx + 1) for idx, f in enumerate(fixtures)])
+            return _merge_scores(_mock_upcoming_matches())
+        return _merge_scores(_sort_matches([_map_fixture_to_match(f, idx + 1) for idx, f in enumerate(fixtures)]))
     except Exception:
-        return _mock_upcoming_matches()
+        return _merge_scores(_mock_upcoming_matches())
 
 
 async def get_match_detail(fixture_id: int) -> MatchDetail | None:

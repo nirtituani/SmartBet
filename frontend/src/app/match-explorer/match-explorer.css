@@ -109,11 +109,47 @@
   letter-spacing: 0.02em;
 }
 
+.match-card__score {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.match-card__score--live {
+  color: var(--win);
+}
+
+.match-card--finished .match-card__team-name {
+  color: var(--text-secondary);
+}
+
+.match-card__live-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--win);
+  box-shadow: 0 0 6px var(--win);
+  margin-right: 5px;
+  animation: pulse-dot 1.2s ease-in-out infinite;
+  vertical-align: middle;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
 .match-card__meta {
   font-size: 11px;
   color: var(--text-muted);
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 

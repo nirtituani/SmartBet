@@ -15,6 +15,9 @@ export interface Match {
   home_odds: number;
   draw_odds: number;
   away_odds: number;
+  score_home: number | null;
+  score_away: number | null;
+  status: 'scheduled' | 'live' | 'finished';
 }
 
 export interface FormResult {

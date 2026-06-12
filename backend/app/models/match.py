@@ -64,6 +64,9 @@ class Match(BaseModel):
     home_odds: float
     draw_odds: float
     away_odds: float
+    score_home: int | None = None
+    score_away: int | None = None
+    status: str = "scheduled"  # "scheduled" | "live" | "finished"
 
 
 class ProjectedScore(BaseModel):
