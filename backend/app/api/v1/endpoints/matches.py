@@ -6,7 +6,7 @@ from app.core.budget import COST_PER_MATCH, is_over_limit, record_spend
 from app.core.cache import get_cached, set_cached
 from app.models.match import Match, MatchDetail
 from app.services.ai_service import get_prediction
-from app.services.football_api import get_match_detail, get_upcoming_matches
+from app.services.football_api import get_match_detail, get_upcoming_matches, _fetch_sofascore_lineup
 
 router = APIRouter(prefix="/matches", tags=["matches"])
 
@@ -28,8 +28,27 @@ async def upcoming_matches():
 async def match_predictions(fixture_id: int):
     cache_key = f"match_detail_v4:{fixture_id}"
     cached = await get_cached(cache_key)
+
     if cached and 'lineup' in cached:
-        return MatchDetail(**cached)
+        detail = MatchDetail(**cached)
+        # If lineup is still predicted and match is within 3 hours, try to get real lineup
+        lineup_is_predicted = cached.get("lineup", {}).get("is_predicted", True) if cached.get("lineup") else True
+        if lineup_is_predicted:
+            try:
+                kickoff = datetime.fromisoformat(f"{detail.match.kickoff_date}T{detail.match.kickoff_time}:00+03:00")
+                mins_to_kickoff = (kickoff - datetime.now(timezone.utc)).total_seconds() / 60
+                if -60 <= mins_to_kickoff <= 180:  # between 3h before and 1h after kickoff
+                    real_lineup = await _fetch_sofascore_lineup(
+                        detail.match.home_team.name, detail.match.away_team.name, detail.match.kickoff_date
+                    )
+                    if real_lineup:
+                        detail.lineup = real_lineup
+                        updated = cached.copy()
+                        updated["lineup"] = real_lineup.model_dump()
+                        await set_cached(cache_key, updated, ttl=43200)
+            except Exception:
+                pass
+        return detail
 
     detail = await get_match_detail(fixture_id)
     if detail is None:
