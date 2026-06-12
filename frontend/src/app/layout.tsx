@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
-import { Analytics } from '@vercel/analytics/next';
+import Script from 'next/script';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import './globals.css';
+
+const GA_ID = 'G-ZDC13PNTKJ';
 
 export const metadata: Metadata = {
   title: 'SmartBet — AI Football Intelligence',
@@ -11,9 +13,17 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
+        <Script id="ga-init" strategy="afterInteractive">{`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', '${GA_ID}');
+        `}</Script>
+      </head>
       <body>
         <LanguageProvider>{children}</LanguageProvider>
-        <Analytics />
       </body>
     </html>
   );
