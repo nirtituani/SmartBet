@@ -1036,7 +1036,8 @@ async def fetch_scores_for_date(date_str: str) -> None:
             )
             r.raise_for_status()
             data = r.json()
-        expires = time.time() + 600  # 10-min TTL per date
+        short_ttl = time.time() + 600       # 10-min for live/scheduled
+        long_ttl  = time.time() + 7 * 86400  # 7-day for finished (score never changes)
         for event in data.get("events", []):
             comp = event.get("competitions", [{}])[0]
             competitors = comp.get("competitors", [])
@@ -1061,6 +1062,7 @@ async def fetch_scores_for_date(date_str: str) -> None:
                 except (ValueError, TypeError):
                     sh, sa = None, None
                 status = "finished"
+                expires = long_ttl
             elif state == "in":
                 try:
                     sh = int(float(home.get("score", 0)))
@@ -1068,8 +1070,10 @@ async def fetch_scores_for_date(date_str: str) -> None:
                 except (ValueError, TypeError):
                     sh, sa = None, None
                 status = "live"
+                expires = short_ttl
             else:
                 sh, sa, status = None, None, "scheduled"
+                expires = short_ttl
 
             key = f"{home_name}|{away_name}"
             _ESPN_SCORES_CACHE[key] = (expires, (sh, sa, status))
@@ -1078,13 +1082,16 @@ async def fetch_scores_for_date(date_str: str) -> None:
 
 
 async def refresh_scores_today() -> None:
-    """Refresh scores for today and yesterday."""
+    """Refresh scores for today and yesterday, then bust the upcoming_matches cache."""
+    from app.core.cache import set_cached
     today = datetime.now(timezone.utc).date()
     yesterday = today - timedelta(days=1)
     await asyncio.gather(
         fetch_scores_for_date(today.strftime("%Y%m%d")),
         fetch_scores_for_date(yesterday.strftime("%Y%m%d")),
     )
+    # Invalidate cached match list so next request re-merges fresh scores
+    await set_cached("upcoming_matches", None, ttl=1)
 
 
 def _get_cached_score(home_name: str, away_name: str) -> tuple[int | None, int | None, str]:
