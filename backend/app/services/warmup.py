@@ -58,28 +58,35 @@ async def _run_with_semaphore(fixture_id: int, ttl: int, force: bool, sem: async
         await _compute_match(fixture_id, ttl, force)
 
 
+_WARMUP_DAYS_AHEAD = 3   # only pre-compute matches happening within this many days
+
+
 async def full_warmup() -> None:
-    """Startup: warm only uncached upcoming matches. Never spends AI on finished games."""
+    """Startup: pre-compute only uncached matches in the next _WARMUP_DAYS_AHEAD days.
+    Matches further out are computed on-demand when a user visits the page.
+    """
+    from datetime import timedelta
     matches = await get_upcoming_matches()
-    today = date.today().isoformat()
-    matches_sorted = sorted(
-        [m for m in matches if m.kickoff_date >= today],
+    today = date.today()
+    cutoff = (today + timedelta(days=_WARMUP_DAYS_AHEAD)).isoformat()
+    today_str = today.isoformat()
+
+    window = sorted(
+        [m for m in matches if today_str <= m.kickoff_date <= cutoff],
         key=lambda m: m.kickoff_date,
     )
 
-    needs_compute = []
-    for m in matches_sorted:
+    uncached = []
+    for m in window:
         c = await get_cached(f"match_detail_v4:{m.id}") or {}
         if not c.get("lineup") or not c.get("prediction_updated_at"):
-            needs_compute.append(m)
-    uncached = needs_compute
+            uncached.append(m)
 
     if not uncached:
-        logger.info("[warmup] all %d matches cached — skipping full warmup", len(matches_sorted))
+        logger.info("[warmup] all %d matches in next %d days cached — skipping", len(window), _WARMUP_DAYS_AHEAD)
         return
 
-    logger.info("[warmup] full warmup: %d/%d matches need computing (daily limit: $%.2f)",
-                len(uncached), len(matches_sorted), DAILY_LIMIT_USD)
+    logger.info("[warmup] warming %d/%d uncached matches in next %d days", len(uncached), len(window), _WARMUP_DAYS_AHEAD)
     sem = asyncio.Semaphore(_CONCURRENCY)
     await asyncio.gather(*[
         _run_with_semaphore(m.id, _FULL_TTL, force=False, sem=sem)
