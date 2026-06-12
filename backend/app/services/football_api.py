@@ -1015,14 +1015,82 @@ _ESPN_SCORES_CACHE: dict[str, tuple[float, tuple[int | None, int | None, str]]] 
 # key: "HomeTeam|AwayTeam"  value: (expires_at, (score_home, score_away, status))
 
 _ESPN_SCOREBOARD = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard"
+_ESPN_SUMMARY   = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/summary"
 
 _ESPN_MATCH_NAME_MAP: dict[str, str] = {
     "Bosnia-Herz": "Bosnia & Herzegovina",
+    "Bosnia-Herzegovina": "Bosnia & Herzegovina",
     "Bosnia & Herzegovina": "Bosnia & Herzegovina",
     "United States": "USA",
     "Czech Republic": "Czechia",
     "Czechia": "Czechia",
 }
+
+_ESPN_POS_MAP = {"G": "GK", "D": "DEF", "M": "MID", "F": "FWD"}
+
+
+async def fetch_espn_lineup(home_name: str, away_name: str, fixture_date: str) -> "MatchLineup | None":
+    """Fetch confirmed starting lineup from ESPN. Returns None if not available yet."""
+    from app.models.match import MatchLineup, TeamLineup, Player
+    date_str = fixture_date.replace("-", "")
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            r = await client.get(_ESPN_SCOREBOARD, params={"dates": date_str})
+            r.raise_for_status()
+            events = r.json().get("events", [])
+
+            def _norm(n: str) -> str:
+                return _ESPN_MATCH_NAME_MAP.get(n, n)
+
+            event_id = None
+            for event in events:
+                comps = event.get("competitions", [{}])
+                competitors = comps[0].get("competitors", []) if comps else []
+                names = {_norm(c.get("team", {}).get("displayName", "")) for c in competitors}
+                if home_name in names and away_name in names:
+                    event_id = event["id"]
+                    break
+
+            if not event_id:
+                return None
+
+            r2 = await client.get(_ESPN_SUMMARY, params={"event": event_id})
+            r2.raise_for_status()
+            rosters = r2.json().get("rosters", [])
+            if len(rosters) < 2:
+                return None
+
+            def _parse_roster(roster_data: dict) -> "TeamLineup | None":
+                athletes = roster_data.get("roster", [])
+                starters = [a for a in athletes if a.get("starter")]
+                if len(starters) < 11:
+                    return None
+                formation = roster_data.get("formation", "")
+                players = [
+                    Player(
+                        name=a.get("athlete", {}).get("displayName", ""),
+                        position=_ESPN_POS_MAP.get(a.get("position", {}).get("abbreviation", ""), "MID"),
+                    )
+                    for a in starters[:11]
+                ]
+                return TeamLineup(formation=formation, starters=players)
+
+            home_roster = next((r for r in rosters if _norm(r.get("team", {}).get("displayName", "")) == home_name), None)
+            away_roster = next((r for r in rosters if _norm(r.get("team", {}).get("displayName", "")) == away_name), None)
+
+            if not home_roster:
+                home_roster = rosters[0]
+            if not away_roster:
+                away_roster = rosters[1]
+
+            home_lu = _parse_roster(home_roster)
+            away_lu = _parse_roster(away_roster)
+            if not home_lu or not away_lu:
+                return None
+
+            return MatchLineup(home=home_lu, away=away_lu, is_predicted=False)
+    except Exception:
+        return None
 
 
 async def fetch_scores_for_date(date_str: str) -> None:

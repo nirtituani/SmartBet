@@ -6,7 +6,7 @@ from app.core.budget import COST_PER_MATCH, is_over_limit, record_spend
 from app.core.cache import get_cached, set_cached
 from app.models.match import Match, MatchDetail
 from app.services.ai_service import get_prediction
-from app.services.football_api import get_match_detail, get_upcoming_matches, _fetch_sofascore_lineup
+from app.services.football_api import get_match_detail, get_upcoming_matches, fetch_espn_lineup
 
 router = APIRouter(prefix="/matches", tags=["matches"])
 
@@ -38,7 +38,7 @@ async def match_predictions(fixture_id: int):
                 kickoff = datetime.fromisoformat(f"{detail.match.kickoff_date}T{detail.match.kickoff_time}:00+03:00")
                 mins_to_kickoff = (kickoff - datetime.now(timezone.utc)).total_seconds() / 60
                 if -60 <= mins_to_kickoff <= 180:  # between 3h before and 1h after kickoff
-                    real_lineup = await _fetch_sofascore_lineup(
+                    real_lineup = await fetch_espn_lineup(
                         detail.match.home_team.name, detail.match.away_team.name, detail.match.kickoff_date
                     )
                     if real_lineup:
