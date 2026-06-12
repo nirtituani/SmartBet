@@ -520,6 +520,30 @@
   background: rgba(99, 179, 237, 0.06);
 }
 
+.lineup-badge {
+  display: inline-block;
+  margin-left: 5px;
+  padding: 1px 5px;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  border-radius: 4px;
+  vertical-align: middle;
+  text-transform: uppercase;
+}
+
+.lineup-badge--confirmed {
+  background: rgba(72, 187, 120, 0.15);
+  color: var(--win);
+  border: 1px solid rgba(72, 187, 120, 0.3);
+}
+
+.lineup-badge--predicted {
+  background: rgba(246, 201, 14, 0.1);
+  color: #f6c90e;
+  border: 1px solid rgba(246, 201, 14, 0.25);
+}
+
 /* Lineup content inside the team card */
 .lineup-content {
   display: flex;

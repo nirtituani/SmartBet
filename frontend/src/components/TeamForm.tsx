@@ -26,9 +26,10 @@ interface Props {
   form: FormResult[];
   lang?: Lang;
   lineup?: TeamLineup;
+  lineupConfirmed?: boolean;
 }
 
-export default function TeamForm({ teamName, teamFlag, form, lang = 'en', lineup }: Props) {
+export default function TeamForm({ teamName, teamFlag, form, lang = 'en', lineup, lineupConfirmed }: Props) {
   const [tab, setTab] = useState<'form' | 'lineup'>('form');
   const formLabel = lang === 'he' ? 'פורמה' : 'Form';
   const lineupLabel = lang === 'he' ? 'הרכב' : 'Lineup';
@@ -70,6 +71,11 @@ export default function TeamForm({ teamName, teamFlag, form, lang = 'en', lineup
             onClick={() => setTab('lineup')}
           >
             {lineupLabel}
+            {lineup && (
+              <span className={`lineup-badge${lineupConfirmed ? ' lineup-badge--confirmed' : ' lineup-badge--predicted'}`}>
+                {lineupConfirmed ? (lang === 'he' ? 'רשמי' : 'Official') : (lang === 'he' ? 'חיזוי' : 'AI')}
+              </span>
+            )}
           </button>
         </div>
       )}

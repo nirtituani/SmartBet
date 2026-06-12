@@ -81,9 +81,9 @@ export default function MatchIntelClient({ matchId }: { matchId: string }) {
       </div>
 
       <div className="intel__top-row">
-        <TeamForm teamName={translateTeam(match.home_team.name, lang)} teamFlag={match.home_team.flag} form={home_form} lang={lang} lineup={lineup?.home ?? undefined} />
+        <TeamForm teamName={translateTeam(match.home_team.name, lang)} teamFlag={match.home_team.flag} form={home_form} lang={lang} lineup={lineup?.home ?? undefined} lineupConfirmed={lineup ? !lineup.is_predicted : false} />
         <H2HHistory h2h={h2h} lang={lang} />
-        <TeamForm teamName={translateTeam(match.away_team.name, lang)} teamFlag={match.away_team.flag} form={away_form} lang={lang} lineup={lineup?.away ?? undefined} />
+        <TeamForm teamName={translateTeam(match.away_team.name, lang)} teamFlag={match.away_team.flag} form={away_form} lang={lang} lineup={lineup?.away ?? undefined} lineupConfirmed={lineup ? !lineup.is_predicted : false} />
       </div>
 
       <div className="intel__bottom-row">
