@@ -299,7 +299,7 @@ async def get_lineup(home_name: str, away_name: str) -> MatchLineup | None:
         return None
     text = await _claude_ask(
         _LINEUP_PROMPT.format(home=home_name, away=away_name),
-        model="claude-sonnet-4-6",
+        model="claude-haiku-4-5-20251001",
         max_tokens=1024,
     )
     if not text:

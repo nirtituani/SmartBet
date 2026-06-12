@@ -13,7 +13,8 @@ _CONCURRENCY = 3
 _FULL_TTL = 7 * 24 * 60 * 60   # 7 days for the full one-time load
 _DAILY_TTL = 24 * 60 * 60       # 24 hours for daily-refreshed matches
 _DAILY_INTERVAL = 24 * 60 * 60  # seconds between daily refreshes
-_DAILY_REFRESH_COUNT = 5        # only refresh the next N upcoming matches
+_DAILY_REFRESH_COUNT = 3        # only refresh the next N upcoming matches
+_FRESH_THRESHOLD_HOURS = 20     # skip daily refresh if prediction is newer than this
 
 
 async def _compute_match(fixture_id: int, ttl: int, force: bool = False) -> None:
@@ -89,23 +90,44 @@ async def full_warmup() -> None:
 
 
 async def daily_refresh() -> None:
-    """Refresh the next 5 upcoming matches every 24 hours."""
+    """Refresh the next N upcoming matches every 24 hours, skipping fresh ones."""
     today = date.today().isoformat()
     logger.info("[warmup] daily refresh for %s", today)
     matches = await get_upcoming_matches()
-    next_5 = sorted(
+    next_n = sorted(
         [m for m in matches if m.kickoff_date >= today],
         key=lambda m: m.kickoff_date
     )[:_DAILY_REFRESH_COUNT]
-    if not next_5:
+    if not next_n:
         logger.info("[warmup] no upcoming matches to refresh")
         return
+
+    stale = []
+    threshold = _FRESH_THRESHOLD_HOURS * 3600
+    now = datetime.now(timezone.utc).timestamp()
+    for m in next_n:
+        cached = await get_cached(f"match_detail_v4:{m.id}") or {}
+        updated_at = cached.get("prediction_updated_at")
+        if updated_at:
+            try:
+                age = now - datetime.fromisoformat(updated_at).timestamp()
+                if age < threshold:
+                    logger.info("[warmup] fixture %d prediction is fresh (%.1fh old), skipping", m.id, age / 3600)
+                    continue
+            except Exception:
+                pass
+        stale.append(m)
+
+    if not stale:
+        logger.info("[warmup] all %d matches have fresh predictions, skipping daily refresh", len(next_n))
+        return
+
     sem = asyncio.Semaphore(_CONCURRENCY)
     await asyncio.gather(*[
         _run_with_semaphore(m.id, _DAILY_TTL, force=True, sem=sem)
-        for m in next_5
+        for m in stale
     ])
-    logger.info("[warmup] daily refresh complete (%d matches)", len(next_5))
+    logger.info("[warmup] daily refresh complete (%d/%d matches refreshed)", len(stale), len(next_n))
 
 
 async def _scores_loop() -> None:
