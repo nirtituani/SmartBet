@@ -82,10 +82,10 @@ export default function MatchExplorerClient({ matches: initialMatches }: { match
   }, []);
 
   const grouped = groupMatchesByDate(matches);
-  const today = new Date().toISOString().slice(0, 10);
   const sortedDates = Object.keys(grouped).sort();
-  const pastDates = sortedDates.filter(d => d < today);
-  const futureDates = sortedDates.filter(d => d >= today);
+  // A date is "past" only if every match on that date is finished
+  const pastDates = sortedDates.filter(d => grouped[d].every(m => m.status === 'finished'));
+  const futureDates = sortedDates.filter(d => !grouped[d].every(m => m.status === 'finished'));
 
   const renderDateSection = (date: string) => (
     <section key={date} className="explorer__date-section">
