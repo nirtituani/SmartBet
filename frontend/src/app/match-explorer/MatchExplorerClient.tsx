@@ -40,6 +40,38 @@ function MatchCard({ match }: { match: Match }) {
   );
 }
 
+const TOTAL_MATCHES = 104;
+
+function TournamentProgress({ matches, lang }: { matches: Match[]; lang: string }) {
+  const played = matches.filter(m => m.status === 'finished').length;
+  const remaining = TOTAL_MATCHES - played;
+  const pct = Math.round((played / TOTAL_MATCHES) * 100);
+  const isHe = lang === 'he';
+
+  return (
+    <div className="tournament-progress glass-card glass-card-blue">
+      <div className="tournament-progress__header">
+        <span className="tournament-progress__title">🏆 {isHe ? 'מונדיאל 2026' : 'FIFA World Cup 2026'}</span>
+        <span className="tournament-progress__pct">{pct}%</span>
+      </div>
+      <div className="tournament-progress__bar">
+        <div className="tournament-progress__fill" style={{ width: `${pct}%` }} />
+      </div>
+      <div className="tournament-progress__stats">
+        <span className="tournament-progress__stat">
+          <span className="tournament-progress__stat-num">{played}</span>
+          <span className="tournament-progress__stat-label">{isHe ? 'שוחקו' : 'Played'}</span>
+        </span>
+        <span className="tournament-progress__divider">·</span>
+        <span className="tournament-progress__stat">
+          <span className="tournament-progress__stat-num">{remaining}</span>
+          <span className="tournament-progress__stat-label">{isHe ? 'נותרו' : 'Remaining'}</span>
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export default function MatchExplorerClient({ matches: initialMatches }: { matches: Match[] }) {
   const { lang } = useLanguage();
   const tr = t[lang].matchExplorer;
@@ -50,7 +82,27 @@ export default function MatchExplorerClient({ matches: initialMatches }: { match
   }, []);
 
   const grouped = groupMatchesByDate(matches);
+  const today = new Date().toISOString().slice(0, 10);
   const sortedDates = Object.keys(grouped).sort();
+  const pastDates = sortedDates.filter(d => d < today);
+  const futureDates = sortedDates.filter(d => d >= today);
+
+  const renderDateSection = (date: string) => (
+    <section key={date} className="explorer__date-section">
+      <div className="explorer__date-header">
+        {lang === 'he' ? (
+          <span className="explorer__date-label explorer__date-label--hebrew" dir="rtl">
+            {formatDateHebrew(date)}
+          </span>
+        ) : (
+          <span className="explorer__date-label">{formatDate(date)}</span>
+        )}
+      </div>
+      {grouped[date].map((match) => (
+        <MatchCard key={match.id} match={match} />
+      ))}
+    </section>
+  );
 
   return (
     <main className="explorer">
@@ -58,22 +110,11 @@ export default function MatchExplorerClient({ matches: initialMatches }: { match
       <h1 className="explorer__title">{tr.title}</h1>
       <p className="explorer__subtitle">{tr.subtitle}</p>
 
-      {sortedDates.map((date) => (
-        <section key={date} className="explorer__date-section">
-          <div className="explorer__date-header">
-            {lang === 'he' ? (
-              <span className="explorer__date-label explorer__date-label--hebrew" dir="rtl">
-                {formatDateHebrew(date)}
-              </span>
-            ) : (
-              <span className="explorer__date-label">{formatDate(date)}</span>
-            )}
-          </div>
-          {grouped[date].map((match) => (
-            <MatchCard key={match.id} match={match} />
-          ))}
-        </section>
-      ))}
+      {pastDates.map(renderDateSection)}
+
+      <TournamentProgress matches={matches} lang={lang} />
+
+      {futureDates.map(renderDateSection)}
     </main>
   );
 }
