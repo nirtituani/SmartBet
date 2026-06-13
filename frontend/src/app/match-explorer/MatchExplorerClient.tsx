@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { t, translateTeam, translateGroup } from '@/lib/i18n';
 import { fetchUpcomingMatches, groupMatchesByDate, formatDate, formatDateHebrew } from '@/lib/api';
@@ -76,9 +76,16 @@ export default function MatchExplorerClient({ matches: initialMatches }: { match
   const { lang } = useLanguage();
   const tr = t[lang].matchExplorer;
   const [matches, setMatches] = useState<Match[]>(initialMatches);
+  const upcomingRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchUpcomingMatches().then(setMatches).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (upcomingRef.current) {
+      upcomingRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }, []);
 
   const finishedMatches = matches.filter(m => m.status === 'finished');
@@ -114,7 +121,9 @@ export default function MatchExplorerClient({ matches: initialMatches }: { match
 
       {pastDates.map(d => renderDateSection(d, groupedPast))}
 
-      <TournamentProgress matches={matches} lang={lang} />
+      <div ref={upcomingRef}>
+        <TournamentProgress matches={matches} lang={lang} />
+      </div>
 
       {futureDates.map(d => renderDateSection(d, groupedFuture))}
     </main>
