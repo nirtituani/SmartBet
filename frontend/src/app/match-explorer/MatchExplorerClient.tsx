@@ -81,13 +81,15 @@ export default function MatchExplorerClient({ matches: initialMatches }: { match
     fetchUpcomingMatches().then(setMatches).catch(() => {});
   }, []);
 
-  const grouped = groupMatchesByDate(matches);
-  const sortedDates = Object.keys(grouped).sort();
-  // A date is "past" only if every match on that date is finished
-  const pastDates = sortedDates.filter(d => grouped[d].every(m => m.status === 'finished'));
-  const futureDates = sortedDates.filter(d => !grouped[d].every(m => m.status === 'finished'));
+  const finishedMatches = matches.filter(m => m.status === 'finished');
+  const upcomingMatches = matches.filter(m => m.status !== 'finished');
 
-  const renderDateSection = (date: string) => (
+  const groupedPast = groupMatchesByDate(finishedMatches);
+  const groupedFuture = groupMatchesByDate(upcomingMatches);
+  const pastDates = Object.keys(groupedPast).sort();
+  const futureDates = Object.keys(groupedFuture).sort();
+
+  const renderDateSection = (date: string, group: Record<string, Match[]>) => (
     <section key={date} className="explorer__date-section">
       <div className="explorer__date-header">
         {lang === 'he' ? (
@@ -98,7 +100,7 @@ export default function MatchExplorerClient({ matches: initialMatches }: { match
           <span className="explorer__date-label">{formatDate(date)}</span>
         )}
       </div>
-      {grouped[date].map((match) => (
+      {group[date].map((match) => (
         <MatchCard key={match.id} match={match} />
       ))}
     </section>
@@ -110,11 +112,11 @@ export default function MatchExplorerClient({ matches: initialMatches }: { match
       <h1 className="explorer__title">{tr.title}</h1>
       <p className="explorer__subtitle">{tr.subtitle}</p>
 
-      {pastDates.map(renderDateSection)}
+      {pastDates.map(d => renderDateSection(d, groupedPast))}
 
       <TournamentProgress matches={matches} lang={lang} />
 
-      {futureDates.map(renderDateSection)}
+      {futureDates.map(d => renderDateSection(d, groupedFuture))}
     </main>
   );
 }
