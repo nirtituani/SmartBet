@@ -84,7 +84,8 @@ export default function MatchExplorerClient({ matches: initialMatches }: { match
 
   useEffect(() => {
     if (upcomingRef.current) {
-      upcomingRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const y = upcomingRef.current.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({ top: y, behavior: 'smooth' });
     }
   }, []);
 
