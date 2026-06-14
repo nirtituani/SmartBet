@@ -163,8 +163,11 @@ async def _scores_loop() -> None:
 
 
 async def warm_cache() -> None:
+    # Refresh scores on startup (free — ESPN only, no AI cost)
     await refresh_scores_today()
-    await full_warmup()
+    # No full_warmup on startup — deploys cost $0 in AI.
+    # Matches are computed on-demand on first user visit (2-3s wait, then cached).
+    # daily_refresh() handles pre-warming upcoming matches every 24h.
     asyncio.create_task(_scores_loop())
     while True:
         await asyncio.sleep(_DAILY_INTERVAL)
