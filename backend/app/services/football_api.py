@@ -1150,14 +1150,13 @@ async def fetch_scores_for_date(date_str: str) -> None:
 
 
 async def refresh_scores_today() -> None:
-    """Refresh scores for today and yesterday, then bust the upcoming_matches cache."""
+    """Refresh scores for the last 5 days + today, then bust the upcoming_matches cache.
+    Fetching 5 days back ensures scores survive Railway restarts throughout the group stage.
+    """
     from app.core.cache import set_cached
     today = datetime.now(timezone.utc).date()
-    yesterday = today - timedelta(days=1)
-    await asyncio.gather(
-        fetch_scores_for_date(today.strftime("%Y%m%d")),
-        fetch_scores_for_date(yesterday.strftime("%Y%m%d")),
-    )
+    dates = [(today - timedelta(days=i)).strftime("%Y%m%d") for i in range(5)]
+    await asyncio.gather(*[fetch_scores_for_date(d) for d in dates])
     # Invalidate cached match list so next request re-merges fresh scores
     await set_cached("upcoming_matches", None, ttl=1)
 
