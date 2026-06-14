@@ -1157,8 +1157,9 @@ async def refresh_scores_today() -> None:
     today = datetime.now(timezone.utc).date()
     dates = [(today - timedelta(days=i)).strftime("%Y%m%d") for i in range(5)]
     await asyncio.gather(*[fetch_scores_for_date(d) for d in dates])
-    # Invalidate cached match list so next request re-merges fresh scores
-    await set_cached("upcoming_matches", None, ttl=1)
+    # Delete cached match list so next request re-merges fresh scores
+    from app.core.cache import delete_cached
+    await delete_cached("upcoming_matches")
 
 
 def _get_cached_score(home_name: str, away_name: str) -> tuple[int | None, int | None, str]:
