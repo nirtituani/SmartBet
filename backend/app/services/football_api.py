@@ -1195,15 +1195,19 @@ async def fetch_scores_for_date(date_str: str) -> None:
         pass
 
 
+_GROUP_STAGE_FIRST_DAY = date(2026, 6, 11)  # first WC 2026 match (ET date on ESPN)
+
+
 async def refresh_scores_today() -> None:
-    """Refresh scores for the last 5 days + today, then bust the upcoming_matches cache.
-    Fetching 5 days back ensures scores survive Railway restarts throughout the group stage.
-    """
+    """Refresh scores for all played group stage days + today, then bust the upcoming_matches cache."""
     from app.core.cache import delete_cached
     today = datetime.now(timezone.utc).date()
-    dates = [(today - timedelta(days=i)).strftime("%Y%m%d") for i in range(5)]
-    await asyncio.gather(*[fetch_scores_for_date(d) for d in dates])
-    # Delete cached match list so next request re-merges fresh scores
+    d = _GROUP_STAGE_FIRST_DAY
+    dates = []
+    while d <= today:
+        dates.append(d.strftime("%Y%m%d"))
+        d += timedelta(days=1)
+    await asyncio.gather(*[fetch_scores_for_date(dt) for dt in dates])
     await delete_cached("upcoming_matches")
 
 
