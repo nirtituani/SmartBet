@@ -12,11 +12,14 @@ _CACHE_TTL = 2 * 3600  # 2 hours — refresh frequently during the tournament
 
 async def _build_and_cache() -> dict[str, list[StandingRow]]:
     standings = await fetch_group_standings()
-    await set_cached(
-        _CACHE_KEY,
-        {g: [r.model_dump() for r in rows] for g, rows in standings.items()},
-        ttl=_CACHE_TTL,
-    )
+    # Don't cache if all teams have 0 points — API probably failed and returned fallback zeros
+    all_zero = all(row.mp == 0 for rows in standings.values() for row in rows)
+    if not all_zero:
+        await set_cached(
+            _CACHE_KEY,
+            {g: [r.model_dump() for r in rows] for g, rows in standings.items()},
+            ttl=_CACHE_TTL,
+        )
     return standings
 
 
