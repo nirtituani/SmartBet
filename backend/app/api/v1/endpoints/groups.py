@@ -6,7 +6,7 @@ from app.services.football_api import fetch_group_standings
 
 router = APIRouter(prefix="/groups", tags=["groups"])
 
-_CACHE_KEY = "group_standings_v2"
+_CACHE_KEY = "group_standings_v3"
 _CACHE_TTL = 2 * 3600  # 2 hours — refresh frequently during the tournament
 
 

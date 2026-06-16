@@ -173,9 +173,7 @@ async def _fetch_wc_results() -> list[dict]:
         return []
 
 
-def calculate_group_standings(results: list[dict]) -> dict[str, list[StandingRow]]:
-    """Build group standings from finished match results."""
-    # Initialise every WC team with zeroed stats
+def _init_groups() -> dict[str, dict[str, StandingRow]]:
     groups: dict[str, dict[str, StandingRow]] = {}
     for f in _WC26_FIXTURES:
         g = f["group"]
@@ -189,92 +187,115 @@ def calculate_group_standings(results: list[dict]) -> dict[str, list[StandingRow
                     name=name, flag=flag, fifa_rank=rank,
                     mp=0, w=0, d=0, l=0, gf=0, ga=0, gd=0, pts=0,
                 )
+    return groups
 
-    for match in results:
-        hname_af = match["teams"]["home"]["name"]
-        aname_af = match["teams"]["away"]["name"]
-        hname = _AF_NAME_MAP.get(hname_af, hname_af)
-        aname = _AF_NAME_MAP.get(aname_af, aname_af)
-        hg = match["goals"].get("home") or 0
-        ag = match["goals"].get("away") or 0
-        grp = _TEAM_TO_GROUP.get(hname)
-        if not grp or hname not in groups.get(grp, {}) or aname not in groups.get(grp, {}):
-            continue
-        h, a = groups[grp][hname], groups[grp][aname]
-        h.mp += 1; a.mp += 1
-        h.gf += hg; h.ga += ag; h.gd = h.gf - h.ga
-        a.gf += ag; a.ga += hg; a.gd = a.gf - a.ga
-        if hg > ag:
-            h.w += 1; h.pts += 3; a.l += 1
-        elif ag > hg:
-            a.w += 1; a.pts += 3; h.l += 1
-        else:
-            h.d += 1; h.pts += 1; a.d += 1; a.pts += 1
 
+def _apply_result(groups: dict[str, dict[str, StandingRow]], hname: str, aname: str, hg: int, ag: int) -> None:
+    grp = _TEAM_TO_GROUP.get(hname)
+    if not grp or hname not in groups.get(grp, {}) or aname not in groups.get(grp, {}):
+        return
+    h, a = groups[grp][hname], groups[grp][aname]
+    h.mp += 1; a.mp += 1
+    h.gf += hg; h.ga += ag; h.gd = h.gf - h.ga
+    a.gf += ag; a.ga += hg; a.gd = a.gf - a.ga
+    if hg > ag:
+        h.w += 1; h.pts += 3; a.l += 1
+    elif ag > hg:
+        a.w += 1; a.pts += 3; h.l += 1
+    else:
+        h.d += 1; h.pts += 1; a.d += 1; a.pts += 1
+
+
+def _sort_groups(groups: dict[str, dict[str, StandingRow]]) -> dict[str, list[StandingRow]]:
     return {
         g: sorted(teams.values(), key=lambda t: (-t.pts, -t.gd, -t.gf, t.fifa_rank))
         for g, teams in sorted(groups.items())
     }
 
 
-# ── Live standings from worldcup26.ir ─────────────────────────────────────────
-_WC26_IR_BASE = "https://worldcup26.ir"
+def calculate_group_standings(results: list[dict]) -> dict[str, list[StandingRow]]:
+    """Build group standings from API-Football finished match results."""
+    groups = _init_groups()
+    for match in results:
+        hname = _AF_NAME_MAP.get(match["teams"]["home"]["name"], match["teams"]["home"]["name"])
+        aname = _AF_NAME_MAP.get(match["teams"]["away"]["name"], match["teams"]["away"]["name"])
+        hg = match["goals"].get("home") or 0
+        ag = match["goals"].get("away") or 0
+        _apply_result(groups, hname, aname, hg, ag)
+    return _sort_groups(groups)
 
-_WC26_IR_NAME_MAP: dict[str, str] = {
-    "United States": "USA",
-    "Bosnia and Herzegovina": "Bosnia & Herzegovina",
-    "Bosnia-Herzegovina": "Bosnia & Herzegovina",
-    "DR Congo": "DR Congo",
-    "Congo DR": "DR Congo",
-    "Côte d'Ivoire": "Ivory Coast",
-    "Cote d'Ivoire": "Ivory Coast",
+
+_GROUP_STAGE_START = "20260612"
+_GROUP_STAGE_END   = "20260702"
+
+# Maps ESPN displayName → our internal name (superset of _ESPN_MATCH_NAME_MAP)
+_ESPN_STANDINGS_NAME_MAP: dict[str, str] = {
+    **{k: v for k, v in {
+        "Bosnia-Herzegovina": "Bosnia & Herzegovina",
+        "Bosnia-Herz": "Bosnia & Herzegovina",
+        "Congo DR": "DR Congo",
+        "Türkiye": "Turkey",
+        "United States": "USA",
+        "IR Iran": "Iran",
+        "Korea Republic": "South Korea",
+        "Côte d'Ivoire": "Ivory Coast",
+        "Curaçao": "Curacao",
+    }.items()},
 }
 
 
 async def fetch_group_standings() -> dict[str, list[StandingRow]]:
-    """Fetch live group standings from worldcup26.ir; falls back to zeroed standings."""
+    """Calculate group standings from ESPN scoreboard data (always current)."""
+    from datetime import date, timedelta
+    today = date.today()
+    end = min(today, date(2026, 7, 2))
+    start = date(2026, 6, 12)
+
+    dates = []
+    d = start
+    while d <= end:
+        dates.append(d.strftime("%Y%m%d"))
+        d += timedelta(days=1)
+
+    groups = _init_groups()
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            teams_resp, groups_resp = await asyncio.gather(
-                client.get(f"{_WC26_IR_BASE}/get/teams"),
-                client.get(f"{_WC26_IR_BASE}/get/groups"),
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            responses = await asyncio.gather(
+                *[client.get(_ESPN_SCOREBOARD, params={"dates": dt}) for dt in dates],
+                return_exceptions=True,
             )
-            teams_resp.raise_for_status()
-            groups_resp.raise_for_status()
-
-        id_to_name: dict[str, str] = {
-            t["id"]: t["name_en"]
-            for t in teams_resp.json().get("teams", [])
-        }
-
-        result: dict[str, list[StandingRow]] = {}
-        for group in sorted(groups_resp.json().get("groups", []), key=lambda g: g["name"]):
-            group_label = f"Group {group['name']}"
-            rows: list[StandingRow] = []
-            for entry in group.get("teams", []):
-                raw_name = id_to_name.get(entry.get("team_id", ""), "")
-                if not raw_name:
+        for resp in responses:
+            if isinstance(resp, Exception):
+                continue
+            try:
+                data = resp.json()
+            except Exception:
+                continue
+            for event in data.get("events", []):
+                comp = (event.get("competitions") or [{}])[0]
+                if not comp.get("status", {}).get("type", {}).get("completed", False):
                     continue
-                name = _WC26_IR_NAME_MAP.get(raw_name, raw_name)
-                flag, rank = _TEAM_META.get(name, ("🏳️", 99))
-                rows.append(StandingRow(
-                    name=name, flag=flag, fifa_rank=rank,
-                    mp=int(entry.get("mp") or 0),
-                    w=int(entry.get("w") or 0),
-                    d=int(entry.get("d") or 0),
-                    l=int(entry.get("l") or 0),
-                    gf=int(entry.get("gf") or 0),
-                    ga=int(entry.get("ga") or 0),
-                    gd=int(entry.get("gd") or 0),
-                    pts=int(entry.get("pts") or 0),
-                ))
-            rows.sort(key=lambda t: (-t.pts, -t.gd, -t.gf, t.fifa_rank))
-            result[group_label] = rows
-        return result
-
+                competitors = comp.get("competitors", [])
+                if len(competitors) != 2:
+                    continue
+                home = next((c for c in competitors if c.get("homeAway") == "home"), None)
+                away = next((c for c in competitors if c.get("homeAway") == "away"), None)
+                if not home or not away:
+                    continue
+                hraw = home.get("team", {}).get("displayName", "")
+                araw = away.get("team", {}).get("displayName", "")
+                hname = _ESPN_STANDINGS_NAME_MAP.get(hraw, hraw)
+                aname = _ESPN_STANDINGS_NAME_MAP.get(araw, araw)
+                try:
+                    hg = int(home.get("score") or 0)
+                    ag = int(away.get("score") or 0)
+                except (ValueError, TypeError):
+                    continue
+                _apply_result(groups, hname, aname, hg, ag)
     except Exception:
-        # Fall back to zeroed standings from embedded fixture list
-        return calculate_group_standings([])
+        pass
+
+    return _sort_groups(groups)
 
 
 # ── ESPN team IDs for all 48 WC 2026 teams ────────────────────────────────────
