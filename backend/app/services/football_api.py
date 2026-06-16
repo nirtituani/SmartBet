@@ -249,7 +249,7 @@ async def fetch_group_standings() -> dict[str, list[StandingRow]]:
     from datetime import date, timedelta
     today = date.today()
     end = min(today, date(2026, 7, 2))
-    start = _GROUP_STAGE_FIRST_DAY
+    start = date(2026, 6, 11)  # Group A matches on Jun 11 ET
 
     dates = []
     d = start
