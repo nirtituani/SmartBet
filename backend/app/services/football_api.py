@@ -1199,14 +1199,26 @@ _GROUP_STAGE_FIRST_DAY = date(2026, 6, 11)  # first WC 2026 match (ET date on ES
 
 
 async def refresh_scores_today() -> None:
-    """Refresh scores for all played group stage days + today, then bust the upcoming_matches cache."""
+    """Refresh scores from ESPN, then bust the upcoming_matches cache.
+
+    Normal run: only fetches yesterday + today (live scores and new results).
+    First boot / Redis cleared: catches up on all group stage dates since Jun 11.
+    Finished scores are persisted to Redis and loaded on startup, so past dates
+    never need to be re-fetched.
+    """
     from app.core.cache import delete_cached
     today = datetime.now(timezone.utc).date()
-    d = _GROUP_STAGE_FIRST_DAY
-    dates = []
-    while d <= today:
-        dates.append(d.strftime("%Y%m%d"))
-        d += timedelta(days=1)
+
+    if _ESPN_SCORES_CACHE:
+        # Normal: only recent dates can have live or newly-finished matches
+        dates = [(today - timedelta(days=i)).strftime("%Y%m%d") for i in range(2)]
+    else:
+        # First boot or Redis cleared: catch up on every day since the tournament started
+        d, dates = _GROUP_STAGE_FIRST_DAY, []
+        while d <= today:
+            dates.append(d.strftime("%Y%m%d"))
+            d += timedelta(days=1)
+
     await asyncio.gather(*[fetch_scores_for_date(dt) for dt in dates])
     await delete_cached("upcoming_matches")
 
