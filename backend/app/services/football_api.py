@@ -1196,33 +1196,47 @@ async def fetch_scores_for_date(date_str: str) -> None:
 
 
 _GROUP_STAGE_FIRST_DAY = date(2026, 6, 11)  # first WC 2026 match (ET date on ESPN)
-_SCORES_CATCHUP_KEY = "espn_scores_catchup_done_v1"
+
+# Pre-build {date_iso: [fixture, ...]} for fast per-date cache checks
+_FIXTURES_BY_DATE: dict[str, list[dict]] = {}
+for _f in _WC26_FIXTURES:
+    _FIXTURES_BY_DATE.setdefault(_f["date"], []).append(_f)
 
 
 async def refresh_scores_today() -> None:
     """Refresh scores from ESPN, then bust the upcoming_matches cache.
 
-    After the initial full catch-up (all dates since Jun 11) is confirmed complete
-    in Redis, only yesterday + today are fetched on subsequent calls.
-    Finished scores are persisted to Redis and loaded on startup.
+    For each date since the group stage started:
+    - Always re-fetch today and yesterday (live / just-finished matches).
+    - Skip older dates only when every match on that date is already
+      in _ESPN_SCORES_CACHE as 'finished' (self-healing after partial restarts).
+    Finished scores are persisted to Redis and loaded before the server
+    starts accepting requests, so there is no scoreless window on restart.
     """
-    from app.core.cache import get_cached, set_cached, delete_cached
+    from app.core.cache import delete_cached
     today = datetime.now(timezone.utc).date()
+    yesterday = today - timedelta(days=1)
 
-    catchup_done = await get_cached(_SCORES_CATCHUP_KEY)
-    if catchup_done:
-        dates = [(today - timedelta(days=i)).strftime("%Y%m%d") for i in range(2)]
-    else:
-        d, dates = _GROUP_STAGE_FIRST_DAY, []
-        while d <= today:
-            dates.append(d.strftime("%Y%m%d"))
-            d += timedelta(days=1)
+    dates_to_fetch: list[str] = []
+    d = _GROUP_STAGE_FIRST_DAY
+    while d <= today:
+        dt = d.strftime("%Y%m%d")
+        if d >= yesterday:
+            # Always refresh recent dates — matches may be live or just finished
+            dates_to_fetch.append(dt)
+        else:
+            # Past date: skip only if every fixture is already cached as finished
+            fixtures = _FIXTURES_BY_DATE.get(d.isoformat(), [])
+            all_done = all(
+                _ESPN_SCORES_CACHE.get(f"{f['home']}|{f['away']}", (0, (None, None, "")))[1][2] == "finished"
+                for f in fixtures
+            )
+            if not all_done:
+                dates_to_fetch.append(dt)
+        d += timedelta(days=1)
 
-    await asyncio.gather(*[fetch_scores_for_date(dt) for dt in dates])
-
-    if not catchup_done:
-        await set_cached(_SCORES_CATCHUP_KEY, True, ttl=30 * 86400)
-
+    if dates_to_fetch:
+        await asyncio.gather(*[fetch_scores_for_date(dt) for dt in dates_to_fetch])
     await delete_cached("upcoming_matches")
 
 
