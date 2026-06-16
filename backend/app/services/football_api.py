@@ -113,7 +113,7 @@ _WC26_FIXTURES: list[dict] = [
     {"id": 47, "home": "Cape Verde",  "away": "Saudi Arabia",      "date": "2026-06-26", "time": "20:00 ET", "group": "Group H", "venue": "Houston"},
     {"id": 48, "home": "Uruguay",     "away": "Spain",             "date": "2026-06-26", "time": "20:00 ET", "group": "Group H", "venue": "Zapopan"},
     # GROUP I
-    {"id": 49, "home": "France",      "away": "Senegal",           "date": "2026-06-16", "time": "16:00 ET", "group": "Group I", "venue": "New York/NJ"},
+    {"id": 49, "home": "France",      "away": "Senegal",           "date": "2026-06-16", "time": "15:00 ET", "group": "Group I", "venue": "New York/NJ"},
     {"id": 50, "home": "Iraq",        "away": "Norway",            "date": "2026-06-16", "time": "18:00 ET", "group": "Group I", "venue": "Boston"},
     {"id": 51, "home": "France",      "away": "Iraq",              "date": "2026-06-22", "time": "17:00 ET", "group": "Group I", "venue": "Philadelphia"},
     {"id": 52, "home": "Norway",      "away": "Senegal",           "date": "2026-06-22", "time": "20:00 ET", "group": "Group I", "venue": "New York/NJ"},
