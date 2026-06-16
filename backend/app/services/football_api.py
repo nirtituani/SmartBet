@@ -1120,8 +1120,22 @@ async def fetch_espn_lineup(home_name: str, away_name: str, fixture_date: str) -
         return None
 
 
+_SCORE_REDIS_TTL = 7 * 24 * 3600  # 7 days for finished scores in Redis
+
+
+async def _load_scores_from_redis() -> None:
+    """Pre-populate in-memory score cache from Redis on startup (instant, no ESPN call)."""
+    from app.core.cache import get_cached
+    data = await get_cached("espn_scores_v1") or {}
+    now = time.time()
+    for key, (expires, score_tuple) in data.items():
+        if expires > now:
+            _ESPN_SCORES_CACHE[key] = (expires, tuple(score_tuple))
+
+
 async def fetch_scores_for_date(date_str: str) -> None:
     """Fetch ESPN scoreboard for a YYYYMMDD date string and populate _ESPN_SCORES_CACHE."""
+    from app.core.cache import set_cached
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             r = await client.get(
@@ -1172,6 +1186,11 @@ async def fetch_scores_for_date(date_str: str) -> None:
 
             key = f"{home_name}|{away_name}"
             _ESPN_SCORES_CACHE[key] = (expires, (sh, sa, status))
+
+        # Persist finished scores to Redis so they survive restarts
+        finished = {k: (exp, list(v)) for k, (exp, v) in _ESPN_SCORES_CACHE.items() if v[2] == "finished"}
+        if finished:
+            await set_cached("espn_scores_v1", finished, ttl=_SCORE_REDIS_TTL)
     except Exception:
         pass
 
@@ -1180,12 +1199,11 @@ async def refresh_scores_today() -> None:
     """Refresh scores for the last 5 days + today, then bust the upcoming_matches cache.
     Fetching 5 days back ensures scores survive Railway restarts throughout the group stage.
     """
-    from app.core.cache import set_cached
+    from app.core.cache import delete_cached
     today = datetime.now(timezone.utc).date()
     dates = [(today - timedelta(days=i)).strftime("%Y%m%d") for i in range(5)]
     await asyncio.gather(*[fetch_scores_for_date(d) for d in dates])
     # Delete cached match list so next request re-merges fresh scores
-    from app.core.cache import delete_cached
     await delete_cached("upcoming_matches")
 
 
