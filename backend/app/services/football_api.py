@@ -1050,7 +1050,7 @@ _ESPN_MATCH_NAME_MAP: dict[str, str] = {
     "IR Iran": "Iran",
     "Korea Republic": "South Korea",
     "Côte d'Ivoire": "Ivory Coast",
-    "DR Congo": "Congo DR",
+    "Congo DR": "DR Congo",
 }
 
 _ESPN_POS_MAP = {"G": "GK", "D": "DEF", "M": "MID", "F": "FWD"}
