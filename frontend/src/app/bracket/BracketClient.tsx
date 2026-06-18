@@ -21,11 +21,11 @@ interface Props {
 }
 
 // Layout constants
-const SLOT_H = 72;
-const CARD_W = 180;
-const CARD_H = 58;
-const CONN_W = 36;
-const FINAL_CONN_W = 52;
+const SLOT_H = 62;
+const CARD_W = 160;
+const CARD_H = 52;
+const CONN_W = 30;
+const FINAL_CONN_W = 44;
 const TOTAL_H = 8 * SLOT_H;
 // bk-round-label height (16px) + margin-bottom (8px) — connectors must skip this
 const LABEL_H = 24;
