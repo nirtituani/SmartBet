@@ -128,10 +128,22 @@
 
 .tp-card .standings-table td {
   padding: 11px 12px;
+  border-bottom: 1px solid rgba(99,179,237,0.09);
 }
 
-.tp-card .standings-table td {
+/* groups.css puts a divider after row 2 — neutralise it inside our table */
+.tp-card .standings-table tbody tr:nth-child(2) td {
   border-bottom: 1px solid rgba(99,179,237,0.09);
+}
+
+/* Top-8 qualify highlight — mirrors groups tab top-2 style */
+.tp-card .standings-table__qualify td {
+  background: rgba(99,179,237,0.05);
+}
+
+.tp-card .standings-table__qualify td.standings-table__pos {
+  color: var(--neon-blue);
+  font-weight: 700;
 }
 
 /* Cutoff divider between 8th and 9th rows */
