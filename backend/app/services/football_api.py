@@ -212,45 +212,69 @@ def _apply_result(
         group_results.setdefault(grp, []).append((hname, aname, hg, ag))
 
 
-def _h2h_key(name: str, tied: set[str], results: list[tuple[str, str, int, int]]) -> tuple[int, int, int]:
-    """H2H pts/GD/GF for `name` only in matches against the other `tied` teams."""
-    pts = gd = gf = 0
-    for h, a, hg, ag in results:
-        if h == name and a in tied:
-            pts += 3 if hg > ag else (1 if hg == ag else 0)
-            gd += hg - ag; gf += hg
-        elif a == name and h in tied:
-            pts += 3 if ag > hg else (1 if ag == hg else 0)
-            gd += ag - hg; gf += ag
-    return (-pts, -gd, -gf)
+def _h2h_sort(
+    rows: list[StandingRow],
+    results: list[tuple[str, str, int, int]],
+) -> list[StandingRow]:
+    """Recursively sort tied-on-pts teams by H2H criteria.
+
+    Order: H2H pts → H2H GD → H2H GF → (reapply H2H to still-tied subset)
+           → overall GD → overall GF → FIFA rank.
+    """
+    if len(rows) <= 1:
+        return rows
+
+    names = {t.name for t in rows}
+
+    def h2h_stats(name: str) -> tuple[int, int, int]:
+        pts = gd = gf = 0
+        for h, a, hg, ag in results:
+            if h == name and a in names and a != name:
+                pts += 3 if hg > ag else (1 if hg == ag else 0)
+                gd += hg - ag; gf += hg
+            elif a == name and h in names and h != name:
+                pts += 3 if ag > hg else (1 if ag == hg else 0)
+                gd += ag - hg; gf += ag
+        return (-pts, -gd, -gf)
+
+    sorted_rows = sorted(rows, key=lambda t: (*h2h_stats(t.name), t.fifa_rank))
+
+    out: list[StandingRow] = []
+    i = 0
+    while i < len(sorted_rows):
+        j = i + 1
+        key_i = h2h_stats(sorted_rows[i].name)
+        while j < len(sorted_rows) and h2h_stats(sorted_rows[j].name) == key_i:
+            j += 1
+        sub = sorted_rows[i:j]
+        if len(sub) > 1:
+            if len(sub) < len(rows):
+                # Subset is smaller: re-apply H2H exclusively to these teams
+                sub = _h2h_sort(sub, results)
+            else:
+                # H2H made no progress at all: fall through to overall GD/GF/FIFA rank
+                sub = sorted(sub, key=lambda t: (-t.gd, -t.gf, t.fifa_rank))
+        out.extend(sub)
+        i = j
+    return out
 
 
 def _sort_group_rows(
     rows: list[StandingRow],
     results: list[tuple[str, str, int, int]],
 ) -> list[StandingRow]:
-    """Sort a group's teams using the FIFA WC 2026 tiebreaker chain:
-    pts → GD → GF → H2H pts → H2H GD → H2H GF → FIFA rank.
-    """
-    rows = sorted(rows, key=lambda t: (-t.pts, -t.gd, -t.gf, t.fifa_rank))
+    """FIFA WC 2026 tiebreaker: pts → H2H(pts,GD,GF,recursive) → overall GD → overall GF → FIFA rank."""
+    by_pts = sorted(rows, key=lambda t: (-t.pts, t.fifa_rank))
     out: list[StandingRow] = []
     i = 0
-    while i < len(rows):
+    while i < len(by_pts):
         j = i + 1
-        while j < len(rows) and (
-            rows[j].pts == rows[i].pts
-            and rows[j].gd == rows[i].gd
-            and rows[j].gf == rows[i].gf
-        ):
+        while j < len(by_pts) and by_pts[j].pts == by_pts[i].pts:
             j += 1
-        tied_slice = rows[i:j]
-        if len(tied_slice) > 1:
-            tied_names = {t.name for t in tied_slice}
-            tied_slice = sorted(
-                tied_slice,
-                key=lambda t: (*_h2h_key(t.name, tied_names - {t.name}, results), t.fifa_rank),
-            )
-        out.extend(tied_slice)
+        tied = by_pts[i:j]
+        if len(tied) > 1:
+            tied = _h2h_sort(tied, results)
+        out.extend(tied)
         i = j
     return out
 
