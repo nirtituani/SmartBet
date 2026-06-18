@@ -104,6 +104,7 @@
 
 .tp-section {
   margin-top: 48px;
+  max-width: 720px;
 }
 
 .tp-title {
@@ -116,8 +117,16 @@
 }
 
 .tp-card {
-  padding: 20px 20px 16px;
+  padding: 20px 24px 16px;
   overflow-x: auto;
+}
+
+.tp-card .standings-table th {
+  padding: 0 12px 10px;
+}
+
+.tp-card .standings-table td {
+  padding: 11px 12px;
 }
 
 /* Cutoff divider between 8th and 9th rows */
