@@ -27,6 +27,8 @@ const CARD_H = 46;
 const CONN_W = 28;
 const FINAL_CONN_W = 40;
 const TOTAL_H = 8 * SLOT_H;
+// bk-round-label height (16px) + margin-bottom (8px) — connectors must skip this
+const LABEL_H = 24;
 
 function cy(r: number, i: number) {
   const m = Math.pow(2, r);
@@ -169,30 +171,35 @@ function Connector({ fromRound, flip, color }: { fromRound: number; flip?: boole
       { key: `e${i}`, x1: mid, y1: nY, x2: CONN_W, y2: nY },
     );
   }
+  // paddingTop offsets the SVG by the label height so lines align with card centers
   return (
-    <svg
-      width={CONN_W} height={TOTAL_H}
-      style={{ display: 'block', flexShrink: 0, transform: flip ? 'scaleX(-1)' : undefined }}
-    >
-      {lines.map(({ key, ...p }) => (
-        <line key={key} stroke={stroke} strokeWidth={1} fill="none" {...p} />
-      ))}
-    </svg>
+    <div style={{ paddingTop: LABEL_H, flexShrink: 0 }}>
+      <svg
+        width={CONN_W} height={TOTAL_H}
+        style={{ display: 'block', transform: flip ? 'scaleX(-1)' : undefined }}
+      >
+        {lines.map(({ key, ...p }) => (
+          <line key={key} stroke={stroke} strokeWidth={1} fill="none" {...p} />
+        ))}
+      </svg>
+    </div>
   );
 }
 
 function FinalConnector({ flip }: { flip?: boolean }) {
   const sfY = cy(3, 0);
   return (
-    <svg
-      width={FINAL_CONN_W} height={TOTAL_H}
-      style={{ display: 'block', flexShrink: 0, transform: flip ? 'scaleX(-1)' : undefined }}
-    >
-      <line
-        x1={0} y1={sfY} x2={FINAL_CONN_W} y2={sfY}
-        stroke="rgba(246,201,14,0.5)" strokeWidth={1.5} fill="none"
-      />
-    </svg>
+    <div style={{ paddingTop: LABEL_H, flexShrink: 0 }}>
+      <svg
+        width={FINAL_CONN_W} height={TOTAL_H}
+        style={{ display: 'block', transform: flip ? 'scaleX(-1)' : undefined }}
+      >
+        <line
+          x1={0} y1={sfY} x2={FINAL_CONN_W} y2={sfY}
+          stroke="rgba(246,201,14,0.5)" strokeWidth={1.5} fill="none"
+        />
+      </svg>
+    </div>
   );
 }
 

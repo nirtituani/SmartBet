@@ -29,6 +29,7 @@
   display: flex;
   align-items: flex-start;
   min-width: max-content;
+  margin: 0 auto;
 }
 
 /* Round column label */
@@ -103,7 +104,7 @@
 /* ── Third-place ranking table ─────────────────────────────────────────────── */
 
 .tp-section {
-  margin-top: 48px;
+  margin: 48px auto 0;
   max-width: 720px;
 }
 
