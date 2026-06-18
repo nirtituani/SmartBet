@@ -67,10 +67,10 @@
 .bk-team {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 9px;
-  height: 25px;
-  font-size: 12px;
+  gap: 7px;
+  padding: 6px 10px;
+  height: 27px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--text-primary);
   white-space: nowrap;
@@ -81,12 +81,12 @@
   color: var(--text-muted);
 }
 
-.bk-flag { font-size: 15px; line-height: 1; flex-shrink: 0; }
+.bk-flag { font-size: 16px; line-height: 1; flex-shrink: 0; }
 
 .bk-name {
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 12px;
+  font-size: 12.5px;
 }
 
 .bk-seed {
@@ -139,17 +139,6 @@
   border-top: 1px solid rgba(99,179,237,0.25) !important;
 }
 
-.tp-badge {
-  margin-left: 6px;
-  font-size: 9px;
-  font-weight: 700;
-  color: var(--neon-gold, #f6c90e);
-  letter-spacing: 0.08em;
-  border: 1px solid rgba(246,201,14,0.4);
-  border-radius: 3px;
-  padding: 1px 4px;
-  flex-shrink: 0;
-}
 
 .tp-tbd-cell {
   color: var(--text-muted) !important;

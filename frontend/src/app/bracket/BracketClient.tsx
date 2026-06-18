@@ -21,11 +21,11 @@ interface Props {
 }
 
 // Layout constants
-const SLOT_H = 62;
-const CARD_W = 160;
-const CARD_H = 52;
-const CONN_W = 30;
-const FINAL_CONN_W = 44;
+const SLOT_H = 68;
+const CARD_W = 170;
+const CARD_H = 56;
+const CONN_W = 32;
+const FINAL_CONN_W = 46;
 const TOTAL_H = 8 * SLOT_H;
 // bk-round-label height (16px) + margin-bottom (8px) — connectors must skip this
 const LABEL_H = 24;
@@ -244,7 +244,6 @@ function ThirdPlaceTable({ teams, lang }: { teams: ThirdPlaceTeam[]; lang: Lang 
                   <div className="standings-table__team-cell">
                     <span className="standings-table__flag">{t.flag}</span>
                     <span className="standings-table__name">{translateTeam(t.name, lang)}</span>
-                    {i < 8 && <span className="tp-badge">{isHe ? 'עובר' : 'ADV'}</span>}
                   </div>
                 </td>
                 <td>{t.group}</td>
