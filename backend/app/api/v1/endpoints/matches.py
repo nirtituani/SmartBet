@@ -59,13 +59,12 @@ async def match_predictions(fixture_id: int):
         await set_cached(cache_key, detail.model_dump(), ttl=7 * 24 * 3600)
         return detail
 
-    if await is_over_limit():
-        raise HTTPException(status_code=503, detail="Daily AI budget reached, try again tomorrow")
+    if not await is_over_limit():
+        detail.prediction = await get_prediction(
+            detail.match, detail.home_form, detail.away_form, detail.h2h, detail.odds_comparison
+        )
+        detail.prediction_updated_at = datetime.now(timezone.utc).isoformat()
+        await record_spend(COST_PER_MATCH)
 
-    detail.prediction = await get_prediction(
-        detail.match, detail.home_form, detail.away_form, detail.h2h, detail.odds_comparison
-    )
-    detail.prediction_updated_at = datetime.now(timezone.utc).isoformat()
-    await record_spend(COST_PER_MATCH)
     await set_cached(cache_key, detail.model_dump(), ttl=43200)  # 12h — refresh twice a day
     return detail

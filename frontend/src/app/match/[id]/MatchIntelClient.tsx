@@ -16,12 +16,13 @@ export default function MatchIntelClient({ matchId }: { matchId: string }) {
   const { lang } = useLanguage();
   const tr = t[lang].intel;
   const [detail, setDetail] = useState<MatchDetail | null>(null);
+  const [error, setError] = useState(false);
   const [rightTab, setRightTab] = useState<'prediction' | 'scores'>('prediction');
   const [stickyProgress, setStickyProgress] = useState(0);
   const matchupRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetchMatchDetail(matchId).then(setDetail).catch(() => {});
+    fetchMatchDetail(matchId).then(setDetail).catch(() => setError(true));
   }, [matchId]);
 
   useEffect(() => {
@@ -38,7 +39,8 @@ export default function MatchIntelClient({ matchId }: { matchId: string }) {
     return () => window.removeEventListener('scroll', onScroll);
   }, [detail]);
 
-  if (!detail) return <main className="intel"><p style={{ color: 'white', padding: '2rem' }}>Loading...</p></main>;
+  if (error) return <main className="intel"><p style={{ color: 'var(--text-muted)', padding: '2rem' }}>Could not load match data. Please try again later.</p></main>;
+  if (!detail) return <main className="intel"><p style={{ color: 'var(--text-muted)', padding: '2rem' }}>Loading...</p></main>;
 
   const { match, home_form, away_form, h2h, odds_comparison, exact_scores, prediction, lineup, prediction_updated_at } = detail;
 
