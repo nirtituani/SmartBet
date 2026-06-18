@@ -58,7 +58,7 @@ const ROUND_LABELS = ['Round of 32', 'Round of 16', 'Quarter Finals', 'Semi Fina
 
 function sortThirdPlace(teams: ThirdPlaceTeam[]): ThirdPlaceTeam[] {
   return [...teams].sort(
-    (a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf || a.fair_play - b.fair_play || a.fifa_rank - b.fifa_rank
+    (a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf || b.fair_play - a.fair_play || a.fifa_rank - b.fifa_rank
   );
 }
 
