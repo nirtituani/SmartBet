@@ -190,7 +190,11 @@ def _init_groups() -> dict[str, dict[str, StandingRow]]:
     return groups
 
 
-def _apply_result(groups: dict[str, dict[str, StandingRow]], hname: str, aname: str, hg: int, ag: int) -> None:
+def _apply_result(
+    groups: dict[str, dict[str, StandingRow]],
+    hname: str, aname: str, hg: int, ag: int,
+    group_results: dict[str, list[tuple[str, str, int, int]]] | None = None,
+) -> None:
     grp = _TEAM_TO_GROUP.get(hname)
     if not grp or hname not in groups.get(grp, {}) or aname not in groups.get(grp, {}):
         return
@@ -204,11 +208,59 @@ def _apply_result(groups: dict[str, dict[str, StandingRow]], hname: str, aname: 
         a.w += 1; a.pts += 3; h.l += 1
     else:
         h.d += 1; h.pts += 1; a.d += 1; a.pts += 1
+    if group_results is not None:
+        group_results.setdefault(grp, []).append((hname, aname, hg, ag))
 
 
-def _sort_groups(groups: dict[str, dict[str, StandingRow]]) -> dict[str, list[StandingRow]]:
+def _h2h_key(name: str, tied: set[str], results: list[tuple[str, str, int, int]]) -> tuple[int, int, int]:
+    """H2H pts/GD/GF for `name` only in matches against the other `tied` teams."""
+    pts = gd = gf = 0
+    for h, a, hg, ag in results:
+        if h == name and a in tied:
+            pts += 3 if hg > ag else (1 if hg == ag else 0)
+            gd += hg - ag; gf += hg
+        elif a == name and h in tied:
+            pts += 3 if ag > hg else (1 if ag == hg else 0)
+            gd += ag - hg; gf += ag
+    return (-pts, -gd, -gf)
+
+
+def _sort_group_rows(
+    rows: list[StandingRow],
+    results: list[tuple[str, str, int, int]],
+) -> list[StandingRow]:
+    """Sort a group's teams using the FIFA WC 2026 tiebreaker chain:
+    pts → GD → GF → H2H pts → H2H GD → H2H GF → FIFA rank.
+    """
+    rows = sorted(rows, key=lambda t: (-t.pts, -t.gd, -t.gf, t.fifa_rank))
+    out: list[StandingRow] = []
+    i = 0
+    while i < len(rows):
+        j = i + 1
+        while j < len(rows) and (
+            rows[j].pts == rows[i].pts
+            and rows[j].gd == rows[i].gd
+            and rows[j].gf == rows[i].gf
+        ):
+            j += 1
+        tied_slice = rows[i:j]
+        if len(tied_slice) > 1:
+            tied_names = {t.name for t in tied_slice}
+            tied_slice = sorted(
+                tied_slice,
+                key=lambda t: (*_h2h_key(t.name, tied_names - {t.name}, results), t.fifa_rank),
+            )
+        out.extend(tied_slice)
+        i = j
+    return out
+
+
+def _sort_groups(
+    groups: dict[str, dict[str, StandingRow]],
+    group_results: dict[str, list[tuple[str, str, int, int]]] | None = None,
+) -> dict[str, list[StandingRow]]:
     return {
-        g: sorted(teams.values(), key=lambda t: (-t.pts, -t.gd, -t.gf, t.fifa_rank))
+        g: _sort_group_rows(list(teams.values()), (group_results or {}).get(g, []))
         for g, teams in sorted(groups.items())
     }
 
@@ -216,13 +268,14 @@ def _sort_groups(groups: dict[str, dict[str, StandingRow]]) -> dict[str, list[St
 def calculate_group_standings(results: list[dict]) -> dict[str, list[StandingRow]]:
     """Build group standings from API-Football finished match results."""
     groups = _init_groups()
+    group_results: dict[str, list[tuple[str, str, int, int]]] = {}
     for match in results:
         hname = _AF_NAME_MAP.get(match["teams"]["home"]["name"], match["teams"]["home"]["name"])
         aname = _AF_NAME_MAP.get(match["teams"]["away"]["name"], match["teams"]["away"]["name"])
         hg = match["goals"].get("home") or 0
         ag = match["goals"].get("away") or 0
-        _apply_result(groups, hname, aname, hg, ag)
-    return _sort_groups(groups)
+        _apply_result(groups, hname, aname, hg, ag, group_results)
+    return _sort_groups(groups, group_results)
 
 
 _GROUP_STAGE_START = "20260612"
@@ -258,6 +311,7 @@ async def fetch_group_standings() -> dict[str, list[StandingRow]]:
         d += timedelta(days=1)
 
     groups = _init_groups()
+    group_results: dict[str, list[tuple[str, str, int, int]]] = {}
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:
             responses = await asyncio.gather(
@@ -291,11 +345,11 @@ async def fetch_group_standings() -> dict[str, list[StandingRow]]:
                     ag = int(away.get("score") or 0)
                 except (ValueError, TypeError):
                     continue
-                _apply_result(groups, hname, aname, hg, ag)
+                _apply_result(groups, hname, aname, hg, ag, group_results)
     except Exception:
         pass
 
-    return _sort_groups(groups)
+    return _sort_groups(groups, group_results)
 
 
 # ── ESPN team IDs for all 48 WC 2026 teams ────────────────────────────────────
