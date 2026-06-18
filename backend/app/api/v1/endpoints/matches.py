@@ -65,6 +65,9 @@ async def match_predictions(fixture_id: int):
         )
         detail.prediction_updated_at = datetime.now(timezone.utc).isoformat()
         await record_spend(COST_PER_MATCH)
+        await set_cached(cache_key, detail.model_dump(), ttl=43200)  # 12h — refresh twice a day
+    else:
+        # Don't cache when prediction is skipped — retry on next request once limit resets
+        pass
 
-    await set_cached(cache_key, detail.model_dump(), ttl=43200)  # 12h — refresh twice a day
     return detail
