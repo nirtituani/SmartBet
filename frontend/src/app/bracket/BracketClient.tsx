@@ -7,23 +7,32 @@ import type { Lang } from '@/lib/i18n';
 type TeamData = { name: string; flag: string };
 type Slot = { label: string; team: TeamData | null };
 type BracketMatch = { top: Slot; bottom: Slot };
-interface Props { standings: Record<string, (TeamData | null)[]> }
+
+export type ThirdPlaceTeam = {
+  name: string; flag: string; group: string;
+  pts: number; gd: number; gf: number; ga: number;
+  mp: number; w: number; d: number; l: number;
+  fifa_rank: number;
+};
+
+interface Props {
+  standings: Record<string, (TeamData | null)[]>;
+  thirdPlace: ThirdPlaceTeam[];
+}
 
 // Layout constants
-const SLOT_H = 54;          // height of one R32 slot
-const CARD_W = 144;         // match card width
-const CARD_H = 46;          // match card height (2 rows + divider)
-const CONN_W = 28;          // connector SVG width
-const FINAL_CONN_W = 40;    // connector to/from final
-const TOTAL_H = 8 * SLOT_H; // 432px
+const SLOT_H = 54;
+const CARD_W = 144;
+const CARD_H = 46;
+const CONN_W = 28;
+const FINAL_CONN_W = 40;
+const TOTAL_H = 8 * SLOT_H;
 
-// Vertical center of match i in round r (0=R32 … 3=SF)
 function cy(r: number, i: number) {
   const m = Math.pow(2, r);
   return i * SLOT_H * m + (SLOT_H * m) / 2;
 }
 
-// Official WC 2026 R32 bracket seeds
 const LEFT_SEEDS: [string, string][] = [
   ['1E', '3ABCDF'], ['1I', '3CDFGH'],
   ['2A', '2B'],     ['1F', '2C'],
@@ -37,12 +46,62 @@ const RIGHT_SEEDS: [string, string][] = [
   ['1B', '3EFGIJ'],  ['1K', '3DEIJL'],
 ];
 
+const ALL_THIRD_SLOTS = [
+  '3ABCDF', '3CDFGH', '3BEFIJ', '3AEHIJ',
+  '3CEFHI', '3EHIJK', '3EFGIJ', '3DEIJL',
+];
+
 const ROUND_LABELS = ['Round of 32', 'Round of 16', 'Quarter Finals', 'Semi Finals'];
 
-function makeSlot(label: string, standings: Record<string, (TeamData | null)[]>): Slot {
+function sortThirdPlace(teams: ThirdPlaceTeam[]): ThirdPlaceTeam[] {
+  return [...teams].sort(
+    (a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf || a.fifa_rank - b.fifa_rank
+  );
+}
+
+// MCV (most-constrained-variable) greedy: process the slot with fewest eligible
+// qualified teams first to avoid impossible assignments later.
+function resolveThirdPlace(teams: ThirdPlaceTeam[]): Map<string, TeamData | null> {
+  const sorted = sortThirdPlace(teams);
+  const qualifiedGroups = new Set(sorted.slice(0, 8).map(t => t.group));
+  const result = new Map<string, TeamData | null>();
+  const assigned = new Set<string>();
+  const remaining = new Set(ALL_THIRD_SLOTS);
+
+  while (remaining.size > 0) {
+    let bestSlot = '';
+    let bestAvailable: string[] = [];
+    let minCount = Infinity;
+
+    for (const slot of remaining) {
+      const eligible = slot.slice(1).split('').filter(g => qualifiedGroups.has(g) && !assigned.has(g));
+      if (eligible.length < minCount) {
+        minCount = eligible.length;
+        bestSlot = slot;
+        bestAvailable = eligible;
+      }
+    }
+
+    remaining.delete(bestSlot);
+    const pick = sorted.find(t => bestAvailable.includes(t.group) && !assigned.has(t.group));
+    if (pick) {
+      result.set(bestSlot, { name: pick.name, flag: pick.flag });
+      assigned.add(pick.group);
+    } else {
+      result.set(bestSlot, null);
+    }
+  }
+
+  return result;
+}
+
+function makeSlot(label: string, standings: Record<string, (TeamData | null)[]>, thirdMap: Map<string, TeamData | null>): Slot {
   if (!label.startsWith('3') && label.length === 2) {
     const pos = parseInt(label[0]) - 1;
     return { label, team: standings[label[1]]?.[pos] ?? null };
+  }
+  if (label.startsWith('3')) {
+    return { label, team: thirdMap.get(label) ?? null };
   }
   return { label, team: null };
 }
@@ -53,7 +112,7 @@ const TBD: BracketMatch = {
 };
 const tbds = (n: number): BracketMatch[] => Array(n).fill(TBD);
 
-// ── Sub-components ────────────────────────────────────────────────────────────
+// ── Sub-components ─────────────────────────────────────────────────────────────
 
 function TeamRow({ s, lang }: { s: Slot; lang: Lang }) {
   if (s.team) return (
@@ -98,7 +157,6 @@ function Connector({ fromRound, flip, color }: { fromRound: number; flip?: boole
   const pairs = (8 / Math.pow(2, fromRound)) / 2;
   const mid = CONN_W / 2;
   const stroke = color ?? 'rgba(99,179,237,0.3)';
-
   const lines: { x1: number; y1: number; x2: number; y2: number; key: string }[] = [];
   for (let i = 0; i < pairs; i++) {
     const uY = cy(fromRound, i * 2);
@@ -111,7 +169,6 @@ function Connector({ fromRound, flip, color }: { fromRound: number; flip?: boole
       { key: `e${i}`, x1: mid, y1: nY, x2: CONN_W, y2: nY },
     );
   }
-
   return (
     <svg
       width={CONN_W} height={TOTAL_H}
@@ -125,7 +182,7 @@ function Connector({ fromRound, flip, color }: { fromRound: number; flip?: boole
 }
 
 function FinalConnector({ flip }: { flip?: boolean }) {
-  const sfY = cy(3, 0); // 216
+  const sfY = cy(3, 0);
   return (
     <svg
       width={FINAL_CONN_W} height={TOTAL_H}
@@ -139,17 +196,79 @@ function FinalConnector({ flip }: { flip?: boolean }) {
   );
 }
 
-// ── Main component ────────────────────────────────────────────────────────────
+function ThirdPlaceTable({ teams, lang }: { teams: ThirdPlaceTeam[]; lang: Lang }) {
+  const sorted = sortThirdPlace(teams);
+  const isHe = lang === 'he';
+  const emptyCount = Math.max(0, 12 - sorted.length);
 
-export default function BracketClient({ standings }: Props) {
+  return (
+    <section className="tp-section">
+      <h2 className="tp-title">
+        {isHe ? 'דירוג מקומות שלישיים — 8 הטובים עוברים' : '3rd Place Rankings — Best 8 Advance'}
+      </h2>
+      <div className="tp-table-wrap">
+        <table className="tp-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>{isHe ? 'נבחרת' : 'Team'}</th>
+              <th>Grp</th>
+              <th>MP</th>
+              <th>W</th>
+              <th>D</th>
+              <th>L</th>
+              <th>GD</th>
+              <th>Pts</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.map((t, i) => (
+              <tr
+                key={t.group}
+                className={`tp-row${i < 8 ? ' tp-row--qualified' : ''}${i === 8 ? ' tp-row--cutoff' : ''}`}
+              >
+                <td className="tp-rank">{i + 1}</td>
+                <td className="tp-team-cell">
+                  <span className="tp-flag">{t.flag}</span>
+                  <span className="tp-team-name">{translateTeam(t.name, lang)}</span>
+                  {i < 8 && <span className="tp-badge">{isHe ? 'עובר' : 'ADV'}</span>}
+                </td>
+                <td>{t.group}</td>
+                <td>{t.mp}</td>
+                <td>{t.w}</td>
+                <td>{t.d}</td>
+                <td>{t.l}</td>
+                <td>{t.gd > 0 ? `+${t.gd}` : t.gd}</td>
+                <td><strong>{t.pts}</strong></td>
+              </tr>
+            ))}
+            {Array.from({ length: emptyCount }, (_, i) => (
+              <tr key={`empty-${i}`} className={`tp-row${sorted.length + i === 8 ? ' tp-row--cutoff' : ''}`}>
+                <td className="tp-rank">{sorted.length + i + 1}</td>
+                <td colSpan={8} className="tp-tbd-cell">
+                  {isHe ? 'ממתין לתוצאות' : 'Awaiting results'}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+// ── Main component ──────────────────────────────────────────────────────────────
+
+export default function BracketClient({ standings, thirdPlace }: Props) {
   const { lang } = useLanguage();
   const l = lang as Lang;
+  const thirdMap = resolveThirdPlace(thirdPlace);
 
   const leftR32 = LEFT_SEEDS.map(([a, b]) => ({
-    top: makeSlot(a, standings), bottom: makeSlot(b, standings),
+    top: makeSlot(a, standings, thirdMap), bottom: makeSlot(b, standings, thirdMap),
   }));
   const rightR32 = RIGHT_SEEDS.map(([a, b]) => ({
-    top: makeSlot(a, standings), bottom: makeSlot(b, standings),
+    top: makeSlot(a, standings, thirdMap), bottom: makeSlot(b, standings, thirdMap),
   }));
 
   const isHe = lang === 'he';
@@ -206,6 +325,8 @@ export default function BracketClient({ standings }: Props) {
 
         </div>
       </div>
+
+      <ThirdPlaceTable teams={thirdPlace} lang={l} />
     </main>
   );
 }

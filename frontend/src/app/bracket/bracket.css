@@ -100,6 +100,95 @@
   margin: 0;
 }
 
+/* ── Third-place ranking table ─────────────────────────────────────────────── */
+
+.tp-section {
+  margin-top: 48px;
+}
+
+.tp-title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+}
+
+.tp-table-wrap {
+  overflow-x: auto;
+}
+
+.tp-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 420px;
+}
+
+.tp-table th {
+  text-align: left;
+  padding: 5px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 1px solid rgba(99,179,237,0.14);
+}
+
+.tp-table td {
+  padding: 7px 10px;
+  font-size: 12px;
+  color: var(--text-primary);
+  border-bottom: 1px solid rgba(99,179,237,0.06);
+  white-space: nowrap;
+}
+
+.tp-row--qualified td {
+  background: rgba(246,201,14,0.03);
+}
+
+.tp-row--cutoff td {
+  border-top: 1px solid rgba(99,179,237,0.2);
+}
+
+.tp-rank {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  min-width: 24px;
+}
+
+.tp-team-cell {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.tp-flag { font-size: 16px; line-height: 1; flex-shrink: 0; }
+
+.tp-team-name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tp-badge {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--neon-gold, #f6c90e);
+  letter-spacing: 0.08em;
+  border: 1px solid rgba(246,201,14,0.4);
+  border-radius: 3px;
+  padding: 1px 4px;
+  flex-shrink: 0;
+}
+
+.tp-tbd-cell {
+  color: var(--text-muted) !important;
+  font-style: italic;
+  font-size: 11px !important;
+}
+
 @media (max-width: 768px) {
   .bracket-page {
     padding: 24px 16px 40px;
