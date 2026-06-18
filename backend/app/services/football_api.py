@@ -252,8 +252,8 @@ def _h2h_sort(
                 # Subset is smaller: re-apply H2H exclusively to these teams
                 sub = _h2h_sort(sub, results)
             else:
-                # H2H made no progress at all: fall through to overall GD/GF/FIFA rank
-                sub = sorted(sub, key=lambda t: (-t.gd, -t.gf, t.fifa_rank))
+                # H2H made no progress at all: fall through to overall GD → GF → fair play → FIFA rank
+                sub = sorted(sub, key=lambda t: (-t.gd, -t.gf, -t.fair_play, t.fifa_rank))
         out.extend(sub)
         i = j
     return out
@@ -321,12 +321,65 @@ _ESPN_STANDINGS_NAME_MAP: dict[str, str] = {
 }
 
 
+_ESPN_SUMMARY = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/summary"
+
+# FIFA fair play deductions per card type
+_CARD_DEDUCTIONS = {"yellow-card": 1, "yellow-red-card": 3, "red-card": 4}
+
+
+async def _fetch_match_fair_play(client: httpx.AsyncClient, event_id: str) -> dict[str, int]:
+    """Return {team_name: fair_play_points} for one completed match.
+    Applies FIFA rule: only one deduction per player per match.
+    Cached in Redis for 7 days (result never changes).
+    """
+    from app.core.cache import get_cached, set_cached
+    cache_key = f"espn_cards_v1:{event_id}"
+    cached = await get_cached(cache_key)
+    if cached is not None:
+        return cached
+
+    try:
+        resp = await client.get(_ESPN_SUMMARY, params={"event": event_id}, timeout=10.0)
+        data = resp.json()
+    except Exception:
+        return {}
+
+    # Per player: collect card events so we can apply the "one deduction" rule
+    from collections import defaultdict
+    player_cards: dict[tuple[str, str], list[str]] = defaultdict(list)
+    for event in data.get("keyEvents", []):
+        etype = event.get("type", {}).get("type", "")
+        if etype not in _CARD_DEDUCTIONS:
+            continue
+        raw = event.get("team", {}).get("displayName", "")
+        team = _ESPN_STANDINGS_NAME_MAP.get(raw, raw)
+        participants = event.get("participants", [])
+        pid = participants[0].get("athlete", {}).get("id", "unk") if participants else "unk"
+        player_cards[(team, pid)].append(etype)
+
+    result: dict[str, int] = {}
+    for (team, _), cards in player_cards.items():
+        if "yellow-red-card" in cards:
+            # Second yellow: only -3 (the first yellow is NOT counted separately)
+            deduction = 3
+        elif "red-card" in cards and "yellow-card" in cards:
+            deduction = 5  # yellow + direct red
+        elif "red-card" in cards:
+            deduction = 4  # direct red only
+        else:
+            deduction = cards.count("yellow-card")  # plain yellow(s): -1 each
+        result[team] = result.get(team, 0) - deduction
+
+    await set_cached(cache_key, result, ttl=7 * 24 * 3600)
+    return result
+
+
 async def fetch_group_standings() -> dict[str, list[StandingRow]]:
-    """Calculate group standings from ESPN scoreboard data (always current)."""
+    """Calculate group standings from ESPN scoreboard + per-match card data."""
     from datetime import date, timedelta
     today = date.today()
     end = min(today, date(2026, 7, 2))
-    start = date(2026, 6, 11)  # Group A matches on Jun 11 ET
+    start = date(2026, 6, 11)
 
     dates = []
     d = start
@@ -336,40 +389,62 @@ async def fetch_group_standings() -> dict[str, list[StandingRow]]:
 
     groups = _init_groups()
     group_results: dict[str, list[tuple[str, str, int, int]]] = {}
+    completed_event_ids: list[str] = []
+
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:
-            responses = await asyncio.gather(
+            # Step 1: fetch all scoreboard dates to get scores + event IDs
+            score_responses = await asyncio.gather(
                 *[client.get(_ESPN_SCOREBOARD, params={"dates": dt}) for dt in dates],
                 return_exceptions=True,
             )
-        for resp in responses:
-            if isinstance(resp, Exception):
-                continue
-            try:
-                data = resp.json()
-            except Exception:
-                continue
-            for event in data.get("events", []):
-                comp = (event.get("competitions") or [{}])[0]
-                if not comp.get("status", {}).get("type", {}).get("completed", False):
+            for resp in score_responses:
+                if isinstance(resp, Exception):
                     continue
-                competitors = comp.get("competitors", [])
-                if len(competitors) != 2:
-                    continue
-                home = next((c for c in competitors if c.get("homeAway") == "home"), None)
-                away = next((c for c in competitors if c.get("homeAway") == "away"), None)
-                if not home or not away:
-                    continue
-                hraw = home.get("team", {}).get("displayName", "")
-                araw = away.get("team", {}).get("displayName", "")
-                hname = _ESPN_STANDINGS_NAME_MAP.get(hraw, hraw)
-                aname = _ESPN_STANDINGS_NAME_MAP.get(araw, araw)
                 try:
-                    hg = int(home.get("score") or 0)
-                    ag = int(away.get("score") or 0)
-                except (ValueError, TypeError):
+                    data = resp.json()
+                except Exception:
                     continue
-                _apply_result(groups, hname, aname, hg, ag, group_results)
+                for event in data.get("events", []):
+                    comp = (event.get("competitions") or [{}])[0]
+                    if not comp.get("status", {}).get("type", {}).get("completed", False):
+                        continue
+                    competitors = comp.get("competitors", [])
+                    if len(competitors) != 2:
+                        continue
+                    home = next((c for c in competitors if c.get("homeAway") == "home"), None)
+                    away = next((c for c in competitors if c.get("homeAway") == "away"), None)
+                    if not home or not away:
+                        continue
+                    hraw = home.get("team", {}).get("displayName", "")
+                    araw = away.get("team", {}).get("displayName", "")
+                    hname = _ESPN_STANDINGS_NAME_MAP.get(hraw, hraw)
+                    aname = _ESPN_STANDINGS_NAME_MAP.get(araw, araw)
+                    try:
+                        hg = int(home.get("score") or 0)
+                        ag = int(away.get("score") or 0)
+                    except (ValueError, TypeError):
+                        continue
+                    _apply_result(groups, hname, aname, hg, ag, group_results)
+                    if event.get("id"):
+                        completed_event_ids.append(str(event["id"]))
+
+            # Step 2: fetch card data for all completed matches (cached per match)
+            fair_play: dict[str, int] = {}
+            card_results = await asyncio.gather(
+                *[_fetch_match_fair_play(client, eid) for eid in completed_event_ids],
+                return_exceptions=True,
+            )
+            for fp in card_results:
+                if isinstance(fp, dict):
+                    for team, pts in fp.items():
+                        fair_play[team] = fair_play.get(team, 0) + pts
+
+            # Apply fair play to each StandingRow
+            for grp_teams in groups.values():
+                for name, row in grp_teams.items():
+                    row.fair_play = fair_play.get(name, 0)
+
     except Exception:
         pass
 

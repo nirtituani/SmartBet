@@ -45,6 +45,7 @@ class StandingRow(BaseModel):
     ga: int
     gd: int
     pts: int
+    fair_play: int = 0
 
 
 class BookmakerOdds(BaseModel):

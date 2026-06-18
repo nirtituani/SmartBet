@@ -70,6 +70,7 @@ export interface StandingRow {
   ga: number;
   gd: number;
   pts: number;
+  fair_play: number;
 }
 
 export interface ScoreOdd {
