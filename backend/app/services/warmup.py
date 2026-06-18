@@ -34,6 +34,11 @@ async def _compute_match(fixture_id: int, ttl: int, force: bool = False) -> None
         if detail is None:
             logger.warning("[warmup] no detail for fixture %d", fixture_id)
             return
+        # Don't spend AI on finished matches — cache as-is for 7 days
+        if detail.match.status == "finished":
+            await set_cached(cache_key, detail.model_dump(), ttl=7 * 24 * 3600)
+            logger.info("[warmup] fixture %d already finished, cached without AI", fixture_id)
+            return
         detail.prediction = await get_prediction(
             detail.match, detail.home_form, detail.away_form, detail.h2h, detail.odds_comparison
         )

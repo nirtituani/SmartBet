@@ -54,6 +54,11 @@ async def match_predictions(fixture_id: int):
     if detail is None:
         raise HTTPException(status_code=404, detail="Match not found")
 
+    # Don't spend AI on finished matches — cache them for 7 days as-is
+    if detail.match.status == "finished":
+        await set_cached(cache_key, detail.model_dump(), ttl=7 * 24 * 3600)
+        return detail
+
     if await is_over_limit():
         raise HTTPException(status_code=503, detail="Daily AI budget reached, try again tomorrow")
 
