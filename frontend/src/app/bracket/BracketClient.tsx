@@ -206,46 +206,55 @@ function ThirdPlaceTable({ teams, lang }: { teams: ThirdPlaceTeam[]; lang: Lang 
       <h2 className="tp-title">
         {isHe ? 'דירוג מקומות שלישיים — 8 הטובים עוברים' : '3rd Place Rankings — Best 8 Advance'}
       </h2>
-      <div className="tp-table-wrap">
-        <table className="tp-table">
+      <div className="glass-card tp-card">
+        <table className="standings-table">
           <thead>
             <tr>
-              <th>#</th>
-              <th>{isHe ? 'נבחרת' : 'Team'}</th>
+              <th className="standings-table__pos">#</th>
+              <th className="standings-table__team">{isHe ? 'נבחרת' : 'Team'}</th>
               <th>Grp</th>
               <th>MP</th>
               <th>W</th>
               <th>D</th>
               <th>L</th>
+              <th>GF</th>
+              <th>GA</th>
               <th>GD</th>
-              <th>Pts</th>
+              <th className="standings-table__pts">Pts</th>
             </tr>
           </thead>
           <tbody>
             {sorted.map((t, i) => (
               <tr
                 key={t.group}
-                className={`tp-row${i < 8 ? ' tp-row--qualified' : ''}${i === 8 ? ' tp-row--cutoff' : ''}`}
+                className={[
+                  i < 8 ? 'standings-table__qualify' : '',
+                  i === 8 ? 'tp-row--cutoff' : '',
+                ].filter(Boolean).join(' ') || undefined}
               >
-                <td className="tp-rank">{i + 1}</td>
-                <td className="tp-team-cell">
-                  <span className="tp-flag">{t.flag}</span>
-                  <span className="tp-team-name">{translateTeam(t.name, lang)}</span>
-                  {i < 8 && <span className="tp-badge">{isHe ? 'עובר' : 'ADV'}</span>}
+                <td className="standings-table__pos">{i + 1}</td>
+                <td className="standings-table__team">
+                  <div className="standings-table__team-cell">
+                    <span className="standings-table__flag">{t.flag}</span>
+                    <span className="standings-table__name">{translateTeam(t.name, lang)}</span>
+                    {i < 8 && <span className="tp-badge">{isHe ? 'עובר' : 'ADV'}</span>}
+                  </div>
                 </td>
                 <td>{t.group}</td>
                 <td>{t.mp}</td>
                 <td>{t.w}</td>
                 <td>{t.d}</td>
                 <td>{t.l}</td>
-                <td>{t.gd > 0 ? `+${t.gd}` : t.gd}</td>
-                <td><strong>{t.pts}</strong></td>
+                <td>{t.gf}</td>
+                <td>{t.ga}</td>
+                <td>{t.gd === 0 ? '0' : t.gd > 0 ? `+${t.gd}` : t.gd}</td>
+                <td className="standings-table__pts">{t.pts}</td>
               </tr>
             ))}
             {Array.from({ length: emptyCount }, (_, i) => (
-              <tr key={`empty-${i}`} className={`tp-row${sorted.length + i === 8 ? ' tp-row--cutoff' : ''}`}>
-                <td className="tp-rank">{sorted.length + i + 1}</td>
-                <td colSpan={8} className="tp-tbd-cell">
+              <tr key={`empty-${i}`} className={sorted.length + i === 8 ? 'tp-row--cutoff' : undefined}>
+                <td className="standings-table__pos">{sorted.length + i + 1}</td>
+                <td colSpan={10} className="tp-tbd-cell">
                   {isHe ? 'ממתין לתוצאות' : 'Awaiting results'}
                 </td>
               </tr>
