@@ -21,6 +21,7 @@ export default async function BracketPage() {
         pts: r.pts, gd: r.gd, gf: r.gf, ga: r.ga,
         mp: r.mp, w: r.w, d: r.d, l: r.l,
         fifa_rank: r.fifa_rank,
+        fair_play: r.fair_play ?? 0,
       });
     }
   }
