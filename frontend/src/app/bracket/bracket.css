@@ -23,13 +23,13 @@
   overflow-x: auto;
   overflow-y: visible;
   padding-bottom: 24px;
+  text-align: center;
 }
 
 .bracket-track {
-  display: flex;
+  display: inline-flex;
   align-items: flex-start;
-  min-width: max-content;
-  margin: 0 auto;
+  text-align: left;
 }
 
 /* Round column label */
@@ -130,9 +130,13 @@
   padding: 11px 12px;
 }
 
+.tp-card .standings-table td {
+  border-bottom: 1px solid rgba(99,179,237,0.09);
+}
+
 /* Cutoff divider between 8th and 9th rows */
 .tp-row--cutoff td {
-  border-top: 1px solid rgba(99,179,237,0.2) !important;
+  border-top: 1px solid rgba(99,179,237,0.25) !important;
 }
 
 .tp-badge {
