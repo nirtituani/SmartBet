@@ -129,7 +129,6 @@ function TeamRow({ s, lang }: { s: Slot; lang: Lang }) {
       <div className={`bk-team${qualified ? ' bk-team--qualified' : ''}`}>
         <span className="bk-flag">{s.team.flag}</span>
         <span className="bk-name">{translateTeam(s.team.name, lang)}</span>
-        {qualified && <span className="bk-qualified-badge">✓</span>}
       </div>
     );
   }

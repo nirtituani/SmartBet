@@ -106,13 +106,6 @@
   color: var(--neon-gold);
 }
 
-.bk-qualified-badge {
-  margin-left: auto;
-  font-size: 10px;
-  color: var(--neon-gold);
-  flex-shrink: 0;
-}
-
 /* ── Third-place ranking table ─────────────────────────────────────────────── */
 
 .tp-section {
