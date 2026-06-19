@@ -101,6 +101,18 @@
   margin: 0;
 }
 
+.bk-team--qualified {
+  background: rgba(246, 201, 14, 0.08);
+  color: var(--neon-gold);
+}
+
+.bk-qualified-badge {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--neon-gold);
+  flex-shrink: 0;
+}
+
 /* ── Third-place ranking table ─────────────────────────────────────────────── */
 
 .tp-section {

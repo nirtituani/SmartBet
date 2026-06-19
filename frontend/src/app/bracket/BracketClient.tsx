@@ -56,6 +56,11 @@ const ALL_THIRD_SLOTS = [
 
 const ROUND_LABELS = ['Round of 32', 'Round of 16', 'Quarter Finals', 'Semi Finals'];
 
+// Teams that have already secured their knockout-stage spot
+const QUALIFIED_TEAMS = new Set([
+  'Mexico',
+]);
+
 function sortThirdPlace(teams: ThirdPlaceTeam[]): ThirdPlaceTeam[] {
   return [...teams].sort(
     (a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf || b.fair_play - a.fair_play || a.fifa_rank - b.fifa_rank
@@ -118,12 +123,16 @@ const tbds = (n: number): BracketMatch[] => Array(n).fill(TBD);
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
 function TeamRow({ s, lang }: { s: Slot; lang: Lang }) {
-  if (s.team) return (
-    <div className="bk-team">
-      <span className="bk-flag">{s.team.flag}</span>
-      <span className="bk-name">{translateTeam(s.team.name, lang)}</span>
-    </div>
-  );
+  if (s.team) {
+    const qualified = QUALIFIED_TEAMS.has(s.team.name);
+    return (
+      <div className={`bk-team${qualified ? ' bk-team--qualified' : ''}`}>
+        <span className="bk-flag">{s.team.flag}</span>
+        <span className="bk-name">{translateTeam(s.team.name, lang)}</span>
+        {qualified && <span className="bk-qualified-badge">✓</span>}
+      </div>
+    );
+  }
   return (
     <div className="bk-team bk-team--tbd">
       <span className="bk-seed">{s.label}</span>
