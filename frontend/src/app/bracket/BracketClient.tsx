@@ -60,6 +60,7 @@ const ROUND_LABELS = ['Round of 32', 'Round of 16', 'Quarter Finals', 'Semi Fina
 const QUALIFIED_TEAMS = new Set([
   'Mexico',
   'USA',
+  'Germany',
 ]);
 
 function sortThirdPlace(teams: ThirdPlaceTeam[]): ThirdPlaceTeam[] {
