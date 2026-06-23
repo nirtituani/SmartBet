@@ -46,6 +46,12 @@ const TOTAL_MATCHES = 104;
 type KOTeam = { name?: string; flag?: string; seed: string };
 type KOFixture = { date: string; time: string; home: KOTeam; away: KOTeam; round: string };
 
+function toIDT(date: string, utcTime: string): string {
+  return new Date(`${date}T${utcTime}:00Z`).toLocaleTimeString('en-GB', {
+    hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jerusalem',
+  });
+}
+
 const R32: KOFixture[] = [
   { date: '2026-06-28', time: '19:00', round: 'Round of 32', home: { seed: '2A' },                                         away: { seed: '2B' } },
   { date: '2026-06-29', time: '17:00', round: 'Round of 32', home: { seed: '1C' },                                         away: { seed: '2F' } },
@@ -169,7 +175,7 @@ function KnockoutSection({ isHe, lang }: { isHe: boolean; lang: string }) {
             <div key={i} className="match-card match-card--tbd glass-card">
               <KOTeamSlot team={f.home} />
               <div className="match-card__center">
-                <span className="match-card__kickoff match-card__kickoff--tbd">{f.time} UTC</span>
+                <span className="match-card__kickoff match-card__kickoff--tbd">{toIDT(f.date, f.time)} IDT</span>
                 <span className="match-card__meta">{isHe ? 'שלב 32' : 'Round of 32'}</span>
               </div>
               <KOTeamSlotAway team={f.away} />
