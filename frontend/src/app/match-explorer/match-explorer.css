@@ -255,6 +255,53 @@
 }
 
 
+/* Knockout Stage */
+.knockout-section {
+  margin-top: 48px;
+  padding-top: 32px;
+  border-top: 1px solid rgba(246, 201, 14, 0.2);
+}
+
+.knockout-section__header {
+  margin-bottom: 24px;
+}
+
+.knockout-section__title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--neon-gold);
+}
+
+.match-card--tbd {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.match-card--tbd:hover {
+  transform: none;
+  border-color: rgba(99, 179, 237, 0.12);
+  box-shadow: none;
+}
+
+.match-card__flag--tbd {
+  font-size: 20px;
+  opacity: 0.4;
+}
+
+.match-card__team-name--tbd {
+  color: var(--text-muted);
+  font-weight: 400;
+  font-style: italic;
+}
+
+.match-card__kickoff--tbd {
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
 @media (max-width: 768px) {
   .explorer {
     padding: 24px 16px;

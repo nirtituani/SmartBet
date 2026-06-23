@@ -42,6 +42,15 @@ function MatchCard({ match }: { match: Match }) {
 
 const TOTAL_MATCHES = 104;
 
+const KNOCKOUT_ROUNDS = [
+  { label: 'Round of 32', labelHe: 'שלב 32',  dates: ['2026-06-28','2026-06-29','2026-06-30','2026-07-01','2026-07-02','2026-07-03','2026-07-04'], count: 16 },
+  { label: 'Round of 16', labelHe: 'שמינית גמר', dates: ['2026-07-06','2026-07-07','2026-07-08','2026-07-09'], count: 8 },
+  { label: 'Quarter Finals', labelHe: 'רבע גמר',   dates: ['2026-07-11','2026-07-12'], count: 4 },
+  { label: 'Semi Finals',   labelHe: 'חצי גמר',   dates: ['2026-07-15','2026-07-16'], count: 2 },
+  { label: '3rd Place',     labelHe: 'מקום שלישי', dates: ['2026-07-18'], count: 1 },
+  { label: 'Final',         labelHe: 'גמר',        dates: ['2026-07-19'], count: 1 },
+];
+
 function TournamentProgress({ matches, lang }: { matches: Match[]; lang: string }) {
   const played = matches.filter(m => m.status === 'finished').length;
   const remaining = TOTAL_MATCHES - played;
@@ -69,6 +78,51 @@ function TournamentProgress({ matches, lang }: { matches: Match[]; lang: string 
         </span>
       </div>
     </div>
+  );
+}
+
+function KnockoutCard({ round, isHe }: { round: typeof KNOCKOUT_ROUNDS[0]; isHe: boolean }) {
+  return (
+    <div className="match-card match-card--tbd glass-card">
+      <div className="match-card__team">
+        <span className="match-card__flag match-card__flag--tbd">?</span>
+        <span className="match-card__team-name match-card__team-name--tbd">TBD</span>
+      </div>
+      <div className="match-card__center">
+        <span className="match-card__kickoff match-card__kickoff--tbd">VS</span>
+        <span className="match-card__meta">{isHe ? round.labelHe : round.label}</span>
+      </div>
+      <div className="match-card__team match-card__team--away">
+        <span className="match-card__flag match-card__flag--tbd">?</span>
+        <span className="match-card__team-name match-card__team-name--tbd">TBD</span>
+      </div>
+    </div>
+  );
+}
+
+function KnockoutSection({ isHe, lang }: { isHe: boolean; lang: string }) {
+  return (
+    <section className="knockout-section">
+      <div className="knockout-section__header">
+        <span className="knockout-section__title">{isHe ? 'שלבי הנוקאאוט' : 'Knockout Stage'}</span>
+      </div>
+      {KNOCKOUT_ROUNDS.map(round => (
+        <div key={round.label} className="explorer__date-section">
+          <div className="explorer__date-header">
+            <span className="explorer__date-label">
+              {isHe ? round.labelHe : round.label}
+              {' · '}
+              {round.dates[0] === round.dates[round.dates.length - 1]
+                ? new Date(round.dates[0] + 'T12:00:00').toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-US', { month: 'long', day: 'numeric' })
+                : `${new Date(round.dates[0] + 'T12:00:00').toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-US', { month: 'short', day: 'numeric' })} – ${new Date(round.dates[round.dates.length - 1] + 'T12:00:00').toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-US', { month: 'short', day: 'numeric' })}`}
+            </span>
+          </div>
+          {Array.from({ length: round.count }, (_, i) => (
+            <KnockoutCard key={i} round={round} isHe={isHe} />
+          ))}
+        </div>
+      ))}
+    </section>
   );
 }
 
@@ -127,6 +181,8 @@ export default function MatchExplorerClient({ matches: initialMatches }: { match
       </div>
 
       {futureDates.map(d => renderDateSection(d, groupedFuture))}
+
+      <KnockoutSection isHe={lang === 'he'} lang={lang} />
     </main>
   );
 }
