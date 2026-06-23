@@ -42,13 +42,35 @@ function MatchCard({ match }: { match: Match }) {
 
 const TOTAL_MATCHES = 104;
 
-const KNOCKOUT_ROUNDS = [
-  { label: 'Round of 32', labelHe: 'שלב 32',  dates: ['2026-06-28','2026-06-29','2026-06-30','2026-07-01','2026-07-02','2026-07-03','2026-07-04'], count: 16 },
-  { label: 'Round of 16', labelHe: 'שמינית גמר', dates: ['2026-07-06','2026-07-07','2026-07-08','2026-07-09'], count: 8 },
-  { label: 'Quarter Finals', labelHe: 'רבע גמר',   dates: ['2026-07-11','2026-07-12'], count: 4 },
-  { label: 'Semi Finals',   labelHe: 'חצי גמר',   dates: ['2026-07-15','2026-07-16'], count: 2 },
-  { label: '3rd Place',     labelHe: 'מקום שלישי', dates: ['2026-07-18'], count: 1 },
-  { label: 'Final',         labelHe: 'גמר',        dates: ['2026-07-19'], count: 1 },
+// Exact knockout schedule from ESPN (times in UTC)
+type KOTeam = { name?: string; flag?: string; seed: string };
+type KOFixture = { date: string; time: string; home: KOTeam; away: KOTeam; round: string };
+
+const R32: KOFixture[] = [
+  { date: '2026-06-28', time: '19:00', round: 'Round of 32', home: { seed: '2A' },                                         away: { seed: '2B' } },
+  { date: '2026-06-29', time: '17:00', round: 'Round of 32', home: { seed: '1C' },                                         away: { seed: '2F' } },
+  { date: '2026-06-29', time: '20:30', round: 'Round of 32', home: { seed: '1E', name: 'Germany',   flag: '🇩🇪' },          away: { seed: '3rd A/B/C/D/F' } },
+  { date: '2026-06-30', time: '01:00', round: 'Round of 32', home: { seed: '1F' },                                         away: { seed: '2C' } },
+  { date: '2026-06-30', time: '17:00', round: 'Round of 32', home: { seed: '2E' },                                         away: { seed: '2I' } },
+  { date: '2026-06-30', time: '21:00', round: 'Round of 32', home: { seed: '1I' },                                         away: { seed: '3rd C/D/F/G/H' } },
+  { date: '2026-07-01', time: '01:00', round: 'Round of 32', home: { seed: '1A', name: 'Mexico',    flag: '🇲🇽' },          away: { seed: '3rd C/E/F/H/I' } },
+  { date: '2026-07-01', time: '16:00', round: 'Round of 32', home: { seed: '1L' },                                         away: { seed: '3rd E/H/I/J/K' } },
+  { date: '2026-07-01', time: '20:00', round: 'Round of 32', home: { seed: '1G' },                                         away: { seed: '3rd A/E/H/I/J' } },
+  { date: '2026-07-02', time: '00:00', round: 'Round of 32', home: { seed: '1D', name: 'USA',       flag: '🇺🇸' },          away: { seed: '3rd B/E/F/I/J' } },
+  { date: '2026-07-02', time: '19:00', round: 'Round of 32', home: { seed: '1H' },                                         away: { seed: '2J' } },
+  { date: '2026-07-02', time: '23:00', round: 'Round of 32', home: { seed: '2K' },                                         away: { seed: '2L' } },
+  { date: '2026-07-03', time: '03:00', round: 'Round of 32', home: { seed: '1B' },                                         away: { seed: '3rd E/F/G/I/J' } },
+  { date: '2026-07-03', time: '18:00', round: 'Round of 32', home: { seed: '2D' },                                         away: { seed: '2G' } },
+  { date: '2026-07-03', time: '22:00', round: 'Round of 32', home: { seed: '1J', name: 'Argentina', flag: '🇦🇷' },          away: { seed: '2H' } },
+  { date: '2026-07-04', time: '01:30', round: 'Round of 32', home: { seed: '1K' },                                         away: { seed: '3rd D/E/I/J/L' } },
+];
+
+const LATER_ROUNDS = [
+  { label: 'Round of 16', labelHe: 'שמינית גמר', count: 8,  dates: '4–7 Jul' },
+  { label: 'Quarter Finals', labelHe: 'רבע גמר',  count: 4,  dates: '9–12 Jul' },
+  { label: 'Semi Finals',   labelHe: 'חצי גמר',  count: 2,  dates: '14–15 Jul' },
+  { label: '3rd Place',     labelHe: 'מקום שלישי',count: 1,  dates: '18 Jul' },
+  { label: 'Final',         labelHe: 'גמר',       count: 1,  dates: '19 Jul' },
 ];
 
 function TournamentProgress({ matches, lang }: { matches: Match[]; lang: string }) {
@@ -81,46 +103,106 @@ function TournamentProgress({ matches, lang }: { matches: Match[]; lang: string 
   );
 }
 
-function KnockoutCard({ round, isHe }: { round: typeof KNOCKOUT_ROUNDS[0]; isHe: boolean }) {
-  return (
-    <div className="match-card match-card--tbd glass-card">
+function KOTeamSlot({ team }: { team: KOTeam }) {
+  if (team.name) {
+    return (
       <div className="match-card__team">
-        <span className="match-card__flag match-card__flag--tbd">?</span>
-        <span className="match-card__team-name match-card__team-name--tbd">TBD</span>
+        <span className="match-card__flag">{team.flag}</span>
+        <span className="match-card__team-name">{team.name}</span>
       </div>
-      <div className="match-card__center">
-        <span className="match-card__kickoff match-card__kickoff--tbd">VS</span>
-        <span className="match-card__meta">{isHe ? round.labelHe : round.label}</span>
-      </div>
+    );
+  }
+  return (
+    <div className="match-card__team">
+      <span className="match-card__flag match-card__flag--tbd">?</span>
+      <span className="match-card__team-name match-card__team-name--tbd">{team.seed}</span>
+    </div>
+  );
+}
+
+function KOTeamSlotAway({ team }: { team: KOTeam }) {
+  if (team.name) {
+    return (
       <div className="match-card__team match-card__team--away">
-        <span className="match-card__flag match-card__flag--tbd">?</span>
-        <span className="match-card__team-name match-card__team-name--tbd">TBD</span>
+        <span className="match-card__flag">{team.flag}</span>
+        <span className="match-card__team-name">{team.name}</span>
       </div>
+    );
+  }
+  return (
+    <div className="match-card__team match-card__team--away">
+      <span className="match-card__flag match-card__flag--tbd">?</span>
+      <span className="match-card__team-name match-card__team-name--tbd">{team.seed}</span>
     </div>
   );
 }
 
 function KnockoutSection({ isHe, lang }: { isHe: boolean; lang: string }) {
+  // Group R32 fixtures by date
+  const byDate = R32.reduce<Record<string, KOFixture[]>>((acc, f) => {
+    (acc[f.date] ??= []).push(f);
+    return acc;
+  }, {});
+  const r32Dates = Object.keys(byDate).sort();
+
+  const fmtDate = (d: string) =>
+    new Date(d + 'T12:00:00').toLocaleDateString(isHe ? 'he-IL' : 'en-US', {
+      weekday: 'long', month: 'long', day: 'numeric',
+    });
+
   return (
     <section className="knockout-section">
       <div className="knockout-section__header">
         <span className="knockout-section__title">{isHe ? 'שלבי הנוקאאוט' : 'Knockout Stage'}</span>
       </div>
-      {KNOCKOUT_ROUNDS.map(round => (
-        <div key={round.label} className="explorer__date-section">
+
+      {/* Round of 32 — exact dates and matchups */}
+      <div className="ko-round-label">{isHe ? 'שלב 32' : 'Round of 32'}</div>
+      {r32Dates.map(date => (
+        <section key={date} className="explorer__date-section">
           <div className="explorer__date-header">
-            <span className="explorer__date-label">
-              {isHe ? round.labelHe : round.label}
-              {' · '}
-              {round.dates[0] === round.dates[round.dates.length - 1]
-                ? new Date(round.dates[0] + 'T12:00:00').toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-US', { month: 'long', day: 'numeric' })
-                : `${new Date(round.dates[0] + 'T12:00:00').toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-US', { month: 'short', day: 'numeric' })} – ${new Date(round.dates[round.dates.length - 1] + 'T12:00:00').toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-US', { month: 'short', day: 'numeric' })}`}
+            <span className={`explorer__date-label${isHe ? ' explorer__date-label--hebrew' : ''}`} dir={isHe ? 'rtl' : undefined}>
+              {fmtDate(date)}
             </span>
           </div>
-          {Array.from({ length: round.count }, (_, i) => (
-            <KnockoutCard key={i} round={round} isHe={isHe} />
+          {byDate[date].map((f, i) => (
+            <div key={i} className="match-card match-card--tbd glass-card">
+              <KOTeamSlot team={f.home} />
+              <div className="match-card__center">
+                <span className="match-card__kickoff match-card__kickoff--tbd">{f.time} UTC</span>
+                <span className="match-card__meta">{isHe ? 'שלב 32' : 'Round of 32'}</span>
+              </div>
+              <KOTeamSlotAway team={f.away} />
+            </div>
           ))}
-        </div>
+        </section>
+      ))}
+
+      {/* Later rounds — TBD */}
+      {LATER_ROUNDS.map(r => (
+        <section key={r.label} className="explorer__date-section">
+          <div className="explorer__date-header">
+            <span className="explorer__date-label">
+              {isHe ? r.labelHe : r.label} · {r.dates}
+            </span>
+          </div>
+          {Array.from({ length: r.count }, (_, i) => (
+            <div key={i} className="match-card match-card--tbd glass-card">
+              <div className="match-card__team">
+                <span className="match-card__flag match-card__flag--tbd">?</span>
+                <span className="match-card__team-name match-card__team-name--tbd">TBD</span>
+              </div>
+              <div className="match-card__center">
+                <span className="match-card__kickoff match-card__kickoff--tbd">VS</span>
+                <span className="match-card__meta">{isHe ? r.labelHe : r.label}</span>
+              </div>
+              <div className="match-card__team match-card__team--away">
+                <span className="match-card__flag match-card__flag--tbd">?</span>
+                <span className="match-card__team-name match-card__team-name--tbd">TBD</span>
+              </div>
+            </div>
+          ))}
+        </section>
       ))}
     </section>
   );
