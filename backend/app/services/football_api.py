@@ -1415,7 +1415,9 @@ async def get_upcoming_matches() -> list[Match]:
     if settings.wc26_api_key:
         try:
             fixtures = await _fetch_wc26_matches()
-            if fixtures:
+            # Only use live API if it returns at least as many fixtures as our embedded list.
+            # The live API typically omits finished matches, which would make past results disappear.
+            if fixtures and len(fixtures) >= len(_WC26_FIXTURES):
                 return _merge_scores(_sort_matches([_map_wc26_to_match(f) for f in fixtures]))
         except Exception:
             pass
