@@ -74,7 +74,7 @@ const R32: KOFixture[] = [
   { date: '2026-07-03', time: '03:00', round: 'Round of 32', home: { seed: '1B', name: 'Switzerland', flag: '🇨🇭' },          away: { seed: '3rd E/F/G/I/J' } },
   { date: '2026-07-03', time: '18:00', round: 'Round of 32', home: { seed: '2D' },                                         away: { seed: '2G' } },
   { date: '2026-07-03', time: '22:00', round: 'Round of 32', home: { seed: '1J', name: 'Argentina', flag: '🇦🇷' },          away: { seed: '2H' } },
-  { date: '2026-07-04', time: '01:30', round: 'Round of 32', home: { seed: '1K', name: 'Colombia',    flag: '🇨🇴' },          away: { seed: '3rd D/E/I/J/L' } },
+  { date: '2026-07-04', time: '01:30', round: 'Round of 32', home: { seed: '1K' },                                         away: { seed: '3rd D/E/I/J/L' } },
 ];
 
 type LaterFixture = { date: string; time: string; label: string; labelHe: string };
