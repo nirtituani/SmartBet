@@ -52,6 +52,12 @@ function toIDT(date: string, utcTime: string): string {
   });
 }
 
+function toIDTDate(date: string, utcTime: string): string {
+  return new Date(`${date}T${utcTime}:00Z`).toLocaleDateString('en-CA', {
+    timeZone: 'Asia/Jerusalem',
+  });
+}
+
 const R32: KOFixture[] = [
   { date: '2026-06-28', time: '19:00', round: 'Round of 32', home: { seed: '2A' },                                         away: { seed: '2B' } },
   { date: '2026-06-29', time: '17:00', round: 'Round of 32', home: { seed: '1C' },                                         away: { seed: '2F' } },
@@ -71,12 +77,30 @@ const R32: KOFixture[] = [
   { date: '2026-07-04', time: '01:30', round: 'Round of 32', home: { seed: '1K' },                                         away: { seed: '3rd D/E/I/J/L' } },
 ];
 
-const LATER_ROUNDS = [
-  { label: 'Round of 16', labelHe: 'שמינית גמר', count: 8,  dates: '4–7 Jul' },
-  { label: 'Quarter Finals', labelHe: 'רבע גמר',  count: 4,  dates: '9–12 Jul' },
-  { label: 'Semi Finals',   labelHe: 'חצי גמר',  count: 2,  dates: '14–15 Jul' },
-  { label: '3rd Place',     labelHe: 'מקום שלישי',count: 1,  dates: '18 Jul' },
-  { label: 'Final',         labelHe: 'גמר',       count: 1,  dates: '19 Jul' },
+type LaterFixture = { date: string; time: string; label: string; labelHe: string };
+
+const LATER_FIXTURES: LaterFixture[] = [
+  // Round of 16
+  { date: '2026-07-04', time: '17:00', label: 'Round of 16', labelHe: 'שמינית גמר' },
+  { date: '2026-07-04', time: '21:00', label: 'Round of 16', labelHe: 'שמינית גמר' },
+  { date: '2026-07-05', time: '20:00', label: 'Round of 16', labelHe: 'שמינית גמר' },
+  { date: '2026-07-06', time: '00:00', label: 'Round of 16', labelHe: 'שמינית גמר' },
+  { date: '2026-07-06', time: '19:00', label: 'Round of 16', labelHe: 'שמינית גמר' },
+  { date: '2026-07-07', time: '00:00', label: 'Round of 16', labelHe: 'שמינית גמר' },
+  { date: '2026-07-07', time: '16:00', label: 'Round of 16', labelHe: 'שמינית גמר' },
+  { date: '2026-07-07', time: '20:00', label: 'Round of 16', labelHe: 'שמינית גמר' },
+  // Quarter Finals
+  { date: '2026-07-09', time: '20:00', label: 'Quarter Final', labelHe: 'רבע גמר' },
+  { date: '2026-07-10', time: '19:00', label: 'Quarter Final', labelHe: 'רבע גמר' },
+  { date: '2026-07-11', time: '21:00', label: 'Quarter Final', labelHe: 'רבע גמר' },
+  { date: '2026-07-12', time: '01:00', label: 'Quarter Final', labelHe: 'רבע גמר' },
+  // Semi Finals
+  { date: '2026-07-14', time: '19:00', label: 'Semi Final', labelHe: 'חצי גמר' },
+  { date: '2026-07-15', time: '19:00', label: 'Semi Final', labelHe: 'חצי גמר' },
+  // 3rd Place
+  { date: '2026-07-18', time: '21:00', label: '3rd Place', labelHe: 'מקום שלישי' },
+  // Final
+  { date: '2026-07-19', time: '19:00', label: 'Final', labelHe: 'גמר' },
 ];
 
 function TournamentProgress({ matches, lang }: { matches: Match[]; lang: string }) {
@@ -144,9 +168,10 @@ function KOTeamSlotAway({ team }: { team: KOTeam }) {
 }
 
 function KnockoutSection({ isHe, lang }: { isHe: boolean; lang: string }) {
-  // Group R32 fixtures by date
+  // Group R32 fixtures by IDT date (some UTC times cross midnight into the next IDT day)
   const byDate = R32.reduce<Record<string, KOFixture[]>>((acc, f) => {
-    (acc[f.date] ??= []).push(f);
+    const idtDate = toIDTDate(f.date, f.time);
+    (acc[idtDate] ??= []).push(f);
     return acc;
   }, {});
   const r32Dates = Object.keys(byDate).sort();
@@ -155,6 +180,20 @@ function KnockoutSection({ isHe, lang }: { isHe: boolean; lang: string }) {
     new Date(d + 'T12:00:00').toLocaleDateString(isHe ? 'he-IL' : 'en-US', {
       weekday: 'long', month: 'long', day: 'numeric',
     });
+
+  // Group later fixtures by round label, preserving round order
+  const roundOrder = ['Round of 16', 'Quarter Final', 'Semi Final', '3rd Place', 'Final'];
+  const roundLabelHe: Record<string, string> = {
+    'Round of 16': 'שמינית גמר',
+    'Quarter Final': 'רבע גמר',
+    'Semi Final': 'חצי גמר',
+    '3rd Place': 'מקום שלישי',
+    'Final': 'גמר',
+  };
+  const byRound = LATER_FIXTURES.reduce<Record<string, LaterFixture[]>>((acc, f) => {
+    (acc[f.label] ??= []).push(f);
+    return acc;
+  }, {});
 
   return (
     <section className="knockout-section">
@@ -184,32 +223,46 @@ function KnockoutSection({ isHe, lang }: { isHe: boolean; lang: string }) {
         </section>
       ))}
 
-      {/* Later rounds — TBD */}
-      {LATER_ROUNDS.map(r => (
-        <section key={r.label} className="explorer__date-section">
-          <div className="explorer__date-header">
-            <span className="explorer__date-label">
-              {isHe ? r.labelHe : r.label} · {r.dates}
-            </span>
+      {/* Later rounds — TBD teams, exact times */}
+      {roundOrder.map(round => {
+        const fixtures = byRound[round] ?? [];
+        const byDateLater = fixtures.reduce<Record<string, LaterFixture[]>>((acc, f) => {
+          const idtDate = toIDTDate(f.date, f.time);
+          (acc[idtDate] ??= []).push(f);
+          return acc;
+        }, {});
+        const dates = Object.keys(byDateLater).sort();
+        return (
+          <div key={round}>
+            <div className="ko-round-label">{isHe ? roundLabelHe[round] : round}</div>
+            {dates.map(date => (
+              <section key={date} className="explorer__date-section">
+                <div className="explorer__date-header">
+                  <span className={`explorer__date-label${isHe ? ' explorer__date-label--hebrew' : ''}`} dir={isHe ? 'rtl' : undefined}>
+                    {fmtDate(date)}
+                  </span>
+                </div>
+                {byDateLater[date].map((f, i) => (
+                  <div key={i} className="match-card match-card--tbd glass-card">
+                    <div className="match-card__team">
+                      <span className="match-card__flag match-card__flag--tbd">?</span>
+                      <span className="match-card__team-name match-card__team-name--tbd">TBD</span>
+                    </div>
+                    <div className="match-card__center">
+                      <span className="match-card__kickoff match-card__kickoff--tbd">{toIDT(f.date, f.time)} IDT</span>
+                      <span className="match-card__meta">{isHe ? f.labelHe : f.label}</span>
+                    </div>
+                    <div className="match-card__team match-card__team--away">
+                      <span className="match-card__flag match-card__flag--tbd">?</span>
+                      <span className="match-card__team-name match-card__team-name--tbd">TBD</span>
+                    </div>
+                  </div>
+                ))}
+              </section>
+            ))}
           </div>
-          {Array.from({ length: r.count }, (_, i) => (
-            <div key={i} className="match-card match-card--tbd glass-card">
-              <div className="match-card__team">
-                <span className="match-card__flag match-card__flag--tbd">?</span>
-                <span className="match-card__team-name match-card__team-name--tbd">TBD</span>
-              </div>
-              <div className="match-card__center">
-                <span className="match-card__kickoff match-card__kickoff--tbd">VS</span>
-                <span className="match-card__meta">{isHe ? r.labelHe : r.label}</span>
-              </div>
-              <div className="match-card__team match-card__team--away">
-                <span className="match-card__flag match-card__flag--tbd">?</span>
-                <span className="match-card__team-name match-card__team-name--tbd">TBD</span>
-              </div>
-            </div>
-          ))}
-        </section>
-      ))}
+        );
+      })}
     </section>
   );
 }
