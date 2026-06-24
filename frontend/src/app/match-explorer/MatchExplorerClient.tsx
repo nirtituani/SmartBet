@@ -59,7 +59,7 @@ function toIDTDate(date: string, utcTime: string): string {
 }
 
 const R32: KOFixture[] = [
-  { date: '2026-06-28', time: '19:00', round: 'Round of 32', home: { seed: '2A' },                                         away: { seed: '2B' } },
+  { date: '2026-06-28', time: '19:00', round: 'Round of 32', home: { seed: '2A' },                                         away: { seed: '2B', name: 'Canada',      flag: '🇨🇦' } },
   { date: '2026-06-29', time: '17:00', round: 'Round of 32', home: { seed: '1C' },                                         away: { seed: '2F' } },
   { date: '2026-06-29', time: '20:30', round: 'Round of 32', home: { seed: '1E', name: 'Germany',   flag: '🇩🇪' },          away: { seed: '3rd A/B/C/D/F' } },
   { date: '2026-06-30', time: '01:00', round: 'Round of 32', home: { seed: '1F' },                                         away: { seed: '2C' } },
@@ -71,10 +71,10 @@ const R32: KOFixture[] = [
   { date: '2026-07-02', time: '00:00', round: 'Round of 32', home: { seed: '1D', name: 'USA',       flag: '🇺🇸' },          away: { seed: '3rd B/E/F/I/J' } },
   { date: '2026-07-02', time: '19:00', round: 'Round of 32', home: { seed: '1H' },                                         away: { seed: '2J' } },
   { date: '2026-07-02', time: '23:00', round: 'Round of 32', home: { seed: '2K' },                                         away: { seed: '2L' } },
-  { date: '2026-07-03', time: '03:00', round: 'Round of 32', home: { seed: '1B' },                                         away: { seed: '3rd E/F/G/I/J' } },
+  { date: '2026-07-03', time: '03:00', round: 'Round of 32', home: { seed: '1B', name: 'Switzerland', flag: '🇨🇭' },          away: { seed: '3rd E/F/G/I/J' } },
   { date: '2026-07-03', time: '18:00', round: 'Round of 32', home: { seed: '2D' },                                         away: { seed: '2G' } },
   { date: '2026-07-03', time: '22:00', round: 'Round of 32', home: { seed: '1J', name: 'Argentina', flag: '🇦🇷' },          away: { seed: '2H' } },
-  { date: '2026-07-04', time: '01:30', round: 'Round of 32', home: { seed: '1K' },                                         away: { seed: '3rd D/E/I/J/L' } },
+  { date: '2026-07-04', time: '01:30', round: 'Round of 32', home: { seed: '1K', name: 'Colombia',    flag: '🇨🇴' },          away: { seed: '3rd D/E/I/J/L' } },
 ];
 
 type LaterFixture = { date: string; time: string; label: string; labelHe: string };
