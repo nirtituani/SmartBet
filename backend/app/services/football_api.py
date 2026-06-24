@@ -1412,15 +1412,8 @@ def _merge_scores(matches: list[Match]) -> list[Match]:
 
 
 async def get_upcoming_matches() -> list[Match]:
-    if settings.wc26_api_key:
-        try:
-            fixtures = await _fetch_wc26_matches()
-            # Only use live API if it returns at least as many fixtures as our embedded list.
-            # The live API typically omits finished matches, which would make past results disappear.
-            if fixtures and len(fixtures) >= len(_WC26_FIXTURES):
-                return _merge_scores(_sort_matches([_map_wc26_to_match(f) for f in fixtures]))
-        except Exception:
-            pass
+    # The live WC26 API omits finished matches, causing them to vanish from the explorer.
+    # Embedded fixtures are the authoritative schedule; ESPN provides live scores on top.
     if not settings.football_api_key:
         return _merge_scores(_mock_upcoming_matches())
     try:
