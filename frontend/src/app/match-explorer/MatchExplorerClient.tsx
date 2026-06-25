@@ -59,10 +59,10 @@ function toIDTDate(date: string, utcTime: string): string {
 }
 
 const R32: KOFixture[] = [
-  { date: '2026-06-28', time: '19:00', round: 'Round of 32', home: { seed: '2A' },                                         away: { seed: '2B', name: 'Canada',      flag: '🇨🇦' } },
-  { date: '2026-06-29', time: '17:00', round: 'Round of 32', home: { seed: '1C' },                                         away: { seed: '2F' } },
+  { date: '2026-06-28', time: '19:00', round: 'Round of 32', home: { seed: '2A', name: 'South Africa', flag: '🇿🇦' },          away: { seed: '2B', name: 'Canada',      flag: '🇨🇦' } },
+  { date: '2026-06-29', time: '17:00', round: 'Round of 32', home: { seed: '1C', name: 'Brazil',       flag: '🇧🇷' },          away: { seed: '2F' } },
   { date: '2026-06-29', time: '20:30', round: 'Round of 32', home: { seed: '1E', name: 'Germany',   flag: '🇩🇪' },          away: { seed: '3rd A/B/C/D/F' } },
-  { date: '2026-06-30', time: '01:00', round: 'Round of 32', home: { seed: '1F' },                                         away: { seed: '2C' } },
+  { date: '2026-06-30', time: '01:00', round: 'Round of 32', home: { seed: '1F' },                                         away: { seed: '2C', name: 'Morocco',     flag: '🇲🇦' } },
   { date: '2026-06-30', time: '17:00', round: 'Round of 32', home: { seed: '2E' },                                         away: { seed: '2I' } },
   { date: '2026-06-30', time: '21:00', round: 'Round of 32', home: { seed: '1I' },                                         away: { seed: '3rd C/D/F/G/H' } },
   { date: '2026-07-01', time: '01:00', round: 'Round of 32', home: { seed: '1A', name: 'Mexico',    flag: '🇲🇽' },          away: { seed: '3rd C/E/F/H/I' } },
