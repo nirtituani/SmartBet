@@ -279,7 +279,14 @@ export default function MatchExplorerClient({ matches: initialMatches }: { match
   }, []);
 
   useEffect(() => {
-    if (upcomingRef.current) {
+    const hash = window.location.hash.slice(1);
+    if (hash) {
+      const el = document.getElementById(hash);
+      if (el) {
+        const y = el.getBoundingClientRect().top + window.scrollY - 80;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      }
+    } else if (upcomingRef.current) {
       const y = upcomingRef.current.getBoundingClientRect().top + window.scrollY - 80;
       window.scrollTo({ top: y, behavior: 'smooth' });
     }
