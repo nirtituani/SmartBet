@@ -78,13 +78,40 @@ const R32_ANCHOR: Record<string, string> = {
   '1K|3DEIJL': 'r32-2026-07-04-0130',
 };
 
-// Later round anchors (map bracket round index → match explorer section id)
-const LATER_ROUND_HREF = [
-  null,                              // round 0 = R32, handled per-card above
-  '/match-explorer#ko-round-of-16',
-  '/match-explorer#ko-quarter-final',
-  '/match-explorer#ko-semi-final',
-];
+// Per-slot hrefs for later rounds.
+// Left side of bracket gets earlier fixtures; right side gets later ones.
+// Anchor IDs match ko-{roundSlug}-{utcDate}-{utcTime no colon} in the explorer.
+const LEFT_SLOT_HREFS: Record<number, string[]> = {
+  1: [ // Round of 16 — left slots → first 4 R16 fixtures
+    '/match-explorer#ko-round-of-16-2026-07-04-1700',
+    '/match-explorer#ko-round-of-16-2026-07-04-2100',
+    '/match-explorer#ko-round-of-16-2026-07-05-2000',
+    '/match-explorer#ko-round-of-16-2026-07-06-0000',
+  ],
+  2: [ // Quarter Final — left slots → first 2 QF fixtures
+    '/match-explorer#ko-quarter-final-2026-07-09-2000',
+    '/match-explorer#ko-quarter-final-2026-07-10-1900',
+  ],
+  3: [ // Semi Final — left slot → first SF fixture
+    '/match-explorer#ko-semi-final-2026-07-14-1900',
+  ],
+};
+
+const RIGHT_SLOT_HREFS: Record<number, string[]> = {
+  1: [ // Round of 16 — right slots → last 4 R16 fixtures
+    '/match-explorer#ko-round-of-16-2026-07-06-1900',
+    '/match-explorer#ko-round-of-16-2026-07-07-0000',
+    '/match-explorer#ko-round-of-16-2026-07-07-1600',
+    '/match-explorer#ko-round-of-16-2026-07-07-2000',
+  ],
+  2: [ // Quarter Final — right slots → last 2 QF fixtures
+    '/match-explorer#ko-quarter-final-2026-07-11-2100',
+    '/match-explorer#ko-quarter-final-2026-07-12-0100',
+  ],
+  3: [ // Semi Final — right slot → second SF fixture
+    '/match-explorer#ko-semi-final-2026-07-15-1900',
+  ],
+};
 
 // Teams that have already secured their knockout-stage spot
 const QUALIFIED_TEAMS = new Set([
@@ -196,8 +223,9 @@ function MatchCard({ m, centerY, lang, href }: { m: BracketMatch; centerY: numbe
   return <div className="bk-card" style={style}>{inner}</div>;
 }
 
-function RoundCol({ matches, round, lang, label, seeds }: {
-  matches: BracketMatch[]; round: number; lang: Lang; label?: string; seeds?: [string, string][];
+function RoundCol({ matches, round, lang, label, seeds, slotHrefs }: {
+  matches: BracketMatch[]; round: number; lang: Lang; label?: string;
+  seeds?: [string, string][]; slotHrefs?: string[];
 }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
@@ -207,7 +235,7 @@ function RoundCol({ matches, round, lang, label, seeds }: {
           const pair = seeds?.[i];
           const href = pair
             ? `/match-explorer#${R32_ANCHOR[`${pair[0]}|${pair[1]}`]}`
-            : LATER_ROUND_HREF[round] ?? undefined;
+            : slotHrefs?.[i];
           return <MatchCard key={i} m={m} centerY={cy(round, i)} lang={lang} href={href} />;
         })}
       </div>
@@ -369,6 +397,7 @@ export default function BracketClient({ standings, thirdPlace }: Props) {
                 lang={l}
                 label={ROUND_LABELS[r]}
                 seeds={r === 0 ? LEFT_SEEDS : undefined}
+                slotHrefs={r > 0 ? LEFT_SLOT_HREFS[r] : undefined}
               />
               {r < 3 && <Connector fromRound={r} />}
             </div>
@@ -396,6 +425,7 @@ export default function BracketClient({ standings, thirdPlace }: Props) {
                 lang={l}
                 label={ROUND_LABELS[r]}
                 seeds={r === 0 ? RIGHT_SEEDS : undefined}
+                slotHrefs={r > 0 ? RIGHT_SLOT_HREFS[r] : undefined}
               />
             </div>
           ))}
