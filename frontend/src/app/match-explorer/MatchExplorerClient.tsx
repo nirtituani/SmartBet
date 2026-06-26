@@ -204,7 +204,7 @@ function KnockoutSection({ isHe, lang }: { isHe: boolean; lang: string }) {
       {/* Round of 32 — exact dates and matchups */}
       <div className="ko-round-label">{isHe ? 'שלב 32' : 'Round of 32'}</div>
       {r32Dates.map(date => (
-        <section key={date} className="explorer__date-section">
+        <section key={date} id={`r32-${date}`} className="explorer__date-section">
           <div className="explorer__date-header">
             <span className={`explorer__date-label${isHe ? ' explorer__date-label--hebrew' : ''}`} dir={isHe ? 'rtl' : undefined}>
               {fmtDate(date)}

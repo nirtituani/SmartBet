@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { translateTeam } from '@/lib/i18n';
 import type { Lang } from '@/lib/i18n';
@@ -55,6 +56,26 @@ const ALL_THIRD_SLOTS = [
 ];
 
 const ROUND_LABELS = ['Round of 32', 'Round of 16', 'Quarter Finals', 'Semi Finals'];
+
+// Maps "topSeed|bottomSeed" → IDT calendar date anchor in match explorer
+const R32_ANCHOR: Record<string, string> = {
+  '2A|2B':     '2026-06-28',
+  '1C|2F':     '2026-06-29',
+  '1E|3ABCDF': '2026-06-29',
+  '1F|2C':     '2026-06-30',
+  '2E|2I':     '2026-06-30',
+  '1I|3CDFGH': '2026-07-01', // 21:00 UTC → IDT crosses midnight
+  '1A|3CEFHI': '2026-07-01',
+  '1L|3EHIJK': '2026-07-01',
+  '1G|3AEHIJ': '2026-07-01',
+  '1D|3BEFIJ': '2026-07-02',
+  '1H|2J':     '2026-07-02',
+  '2K|2L':     '2026-07-03', // 23:00 UTC → IDT crosses midnight
+  '1B|3EFGIJ': '2026-07-03',
+  '2D|2G':     '2026-07-03',
+  '1J|2H':     '2026-07-04', // 22:00 UTC → IDT crosses midnight
+  '1K|3DEIJL': '2026-07-04',
+};
 
 // Teams that have already secured their knockout-stage spot
 const QUALIFIED_TEAMS = new Set([
@@ -151,26 +172,33 @@ function TeamRow({ s, lang }: { s: Slot; lang: Lang }) {
   );
 }
 
-function MatchCard({ m, centerY, lang }: { m: BracketMatch; centerY: number; lang: Lang }) {
-  return (
-    <div className="bk-card" style={{ top: centerY - CARD_H / 2, width: CARD_W }}>
+function MatchCard({ m, centerY, lang, href }: { m: BracketMatch; centerY: number; lang: Lang; href?: string }) {
+  const style = { top: centerY - CARD_H / 2, width: CARD_W };
+  const inner = (
+    <>
       <TeamRow s={m.top} lang={lang} />
       <div className="bk-sep" />
       <TeamRow s={m.bottom} lang={lang} />
-    </div>
+    </>
   );
+  if (href) {
+    return <Link href={href} className="bk-card bk-card--link" style={style}>{inner}</Link>;
+  }
+  return <div className="bk-card" style={style}>{inner}</div>;
 }
 
-function RoundCol({ matches, round, lang, label }: {
-  matches: BracketMatch[]; round: number; lang: Lang; label?: string;
+function RoundCol({ matches, round, lang, label, seeds }: {
+  matches: BracketMatch[]; round: number; lang: Lang; label?: string; seeds?: [string, string][];
 }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
       {label && <div className="bk-round-label">{label}</div>}
       <div style={{ width: CARD_W, height: TOTAL_H, position: 'relative', flexShrink: 0 }}>
-        {matches.map((m, i) => (
-          <MatchCard key={i} m={m} centerY={cy(round, i)} lang={lang} />
-        ))}
+        {matches.map((m, i) => {
+          const pair = seeds?.[i];
+          const href = pair ? `/match-explorer#r32-${R32_ANCHOR[`${pair[0]}|${pair[1]}`]}` : undefined;
+          return <MatchCard key={i} m={m} centerY={cy(round, i)} lang={lang} href={href} />;
+        })}
       </div>
     </div>
   );
@@ -329,6 +357,7 @@ export default function BracketClient({ standings, thirdPlace }: Props) {
                 round={r}
                 lang={l}
                 label={ROUND_LABELS[r]}
+                seeds={r === 0 ? LEFT_SEEDS : undefined}
               />
               {r < 3 && <Connector fromRound={r} />}
             </div>
@@ -355,6 +384,7 @@ export default function BracketClient({ standings, thirdPlace }: Props) {
                 round={r}
                 lang={l}
                 label={ROUND_LABELS[r]}
+                seeds={r === 0 ? RIGHT_SEEDS : undefined}
               />
             </div>
           ))}

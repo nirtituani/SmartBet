@@ -63,6 +63,18 @@
   border-color: rgba(99, 179, 237, 0.35);
 }
 
+.bk-card--link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.bk-card--link:hover {
+  border-color: var(--neon-blue);
+  box-shadow: 0 0 12px rgba(99, 179, 237, 0.2);
+}
+
 /* Team row */
 .bk-team {
   display: flex;
