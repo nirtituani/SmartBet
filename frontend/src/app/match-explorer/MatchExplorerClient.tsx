@@ -60,10 +60,10 @@ function toIDTDate(date: string, utcTime: string): string {
 
 const R32: KOFixture[] = [
   { date: '2026-06-28', time: '19:00', round: 'Round of 32', home: { seed: '2A', name: 'South Africa', flag: '🇿🇦' },          away: { seed: '2B', name: 'Canada',      flag: '🇨🇦' } },
-  { date: '2026-06-29', time: '17:00', round: 'Round of 32', home: { seed: '1C', name: 'Brazil',       flag: '🇧🇷' },          away: { seed: '2F' } },
+  { date: '2026-06-29', time: '17:00', round: 'Round of 32', home: { seed: '1C', name: 'Brazil',       flag: '🇧🇷' },          away: { seed: '2F', name: 'Japan',       flag: '🇯🇵' } },
   { date: '2026-06-29', time: '20:30', round: 'Round of 32', home: { seed: '1E', name: 'Germany',   flag: '🇩🇪' },          away: { seed: '3rd A/B/C/D/F' } },
-  { date: '2026-06-30', time: '01:00', round: 'Round of 32', home: { seed: '1F' },                                         away: { seed: '2C', name: 'Morocco',     flag: '🇲🇦' } },
-  { date: '2026-06-30', time: '17:00', round: 'Round of 32', home: { seed: '2E' },                                         away: { seed: '2I' } },
+  { date: '2026-06-30', time: '01:00', round: 'Round of 32', home: { seed: '1F', name: 'Netherlands',  flag: '🇳🇱' },          away: { seed: '2C', name: 'Morocco',     flag: '🇲🇦' } },
+  { date: '2026-06-30', time: '17:00', round: 'Round of 32', home: { seed: '2E', name: 'Ivory Coast',  flag: '🇨🇮' },          away: { seed: '2I' } },
   { date: '2026-06-30', time: '21:00', round: 'Round of 32', home: { seed: '1I' },                                         away: { seed: '3rd C/D/F/G/H' } },
   { date: '2026-07-01', time: '01:00', round: 'Round of 32', home: { seed: '1A', name: 'Mexico',    flag: '🇲🇽' },          away: { seed: '3rd C/E/F/H/I' } },
   { date: '2026-07-01', time: '16:00', round: 'Round of 32', home: { seed: '1L' },                                         away: { seed: '3rd E/H/I/J/K' } },
@@ -72,7 +72,7 @@ const R32: KOFixture[] = [
   { date: '2026-07-02', time: '19:00', round: 'Round of 32', home: { seed: '1H' },                                         away: { seed: '2J' } },
   { date: '2026-07-02', time: '23:00', round: 'Round of 32', home: { seed: '2K' },                                         away: { seed: '2L' } },
   { date: '2026-07-03', time: '03:00', round: 'Round of 32', home: { seed: '1B', name: 'Switzerland', flag: '🇨🇭' },          away: { seed: '3rd E/F/G/I/J' } },
-  { date: '2026-07-03', time: '18:00', round: 'Round of 32', home: { seed: '2D' },                                         away: { seed: '2G' } },
+  { date: '2026-07-03', time: '18:00', round: 'Round of 32', home: { seed: '2D', name: 'Australia',   flag: '🇦🇺' },          away: { seed: '2G' } },
   { date: '2026-07-03', time: '22:00', round: 'Round of 32', home: { seed: '1J', name: 'Argentina', flag: '🇦🇷' },          away: { seed: '2H' } },
   { date: '2026-07-04', time: '01:30', round: 'Round of 32', home: { seed: '1K' },                                         away: { seed: '3rd D/E/I/J/L' } },
 ];

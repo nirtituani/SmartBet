@@ -67,6 +67,10 @@ const QUALIFIED_TEAMS = new Set([
   'South Africa',
   'Brazil',
   'Morocco',
+  'Australia',
+  'Ivory Coast',
+  'Netherlands',
+  'Japan',
 ]);
 
 function sortThirdPlace(teams: ThirdPlaceTeam[]): ThirdPlaceTeam[] {
