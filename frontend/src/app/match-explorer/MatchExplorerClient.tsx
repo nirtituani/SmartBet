@@ -204,14 +204,14 @@ function KnockoutSection({ isHe, lang }: { isHe: boolean; lang: string }) {
       {/* Round of 32 — exact dates and matchups */}
       <div className="ko-round-label">{isHe ? 'שלב 32' : 'Round of 32'}</div>
       {r32Dates.map(date => (
-        <section key={date} id={`r32-${date}`} className="explorer__date-section">
+        <section key={date} className="explorer__date-section">
           <div className="explorer__date-header">
             <span className={`explorer__date-label${isHe ? ' explorer__date-label--hebrew' : ''}`} dir={isHe ? 'rtl' : undefined}>
               {fmtDate(date)}
             </span>
           </div>
           {byDate[date].map((f, i) => (
-            <div key={i} className="match-card match-card--tbd glass-card">
+            <div key={i} id={`r32-${f.date}-${f.time.replace(':', '')}`} className="match-card match-card--tbd glass-card">
               <KOTeamSlot team={f.home} />
               <div className="match-card__center">
                 <span className="match-card__kickoff match-card__kickoff--tbd">{toIDT(f.date, f.time)} IDT</span>
@@ -226,6 +226,7 @@ function KnockoutSection({ isHe, lang }: { isHe: boolean; lang: string }) {
       {/* Later rounds — TBD teams, exact times */}
       {roundOrder.map(round => {
         const fixtures = byRound[round] ?? [];
+        const roundSlug = round.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
         const byDateLater = fixtures.reduce<Record<string, LaterFixture[]>>((acc, f) => {
           const idtDate = toIDTDate(f.date, f.time);
           (acc[idtDate] ??= []).push(f);
@@ -234,7 +235,7 @@ function KnockoutSection({ isHe, lang }: { isHe: boolean; lang: string }) {
         const dates = Object.keys(byDateLater).sort();
         return (
           <div key={round}>
-            <div className="ko-round-label">{isHe ? roundLabelHe[round] : round}</div>
+            <div id={`ko-${roundSlug}`} className="ko-round-label">{isHe ? roundLabelHe[round] : round}</div>
             {dates.map(date => (
               <section key={date} className="explorer__date-section">
                 <div className="explorer__date-header">
@@ -243,7 +244,7 @@ function KnockoutSection({ isHe, lang }: { isHe: boolean; lang: string }) {
                   </span>
                 </div>
                 {byDateLater[date].map((f, i) => (
-                  <div key={i} className="match-card match-card--tbd glass-card">
+                  <div key={i} id={`ko-${roundSlug}-${f.date}-${f.time.replace(':', '')}`} className="match-card match-card--tbd glass-card">
                     <div className="match-card__team">
                       <span className="match-card__flag match-card__flag--tbd">?</span>
                       <span className="match-card__team-name match-card__team-name--tbd">TBD</span>

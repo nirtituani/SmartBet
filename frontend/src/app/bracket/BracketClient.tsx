@@ -57,25 +57,34 @@ const ALL_THIRD_SLOTS = [
 
 const ROUND_LABELS = ['Round of 32', 'Round of 16', 'Quarter Finals', 'Semi Finals'];
 
-// Maps "topSeed|bottomSeed" → IDT calendar date anchor in match explorer
+// Maps "topSeed|bottomSeed" → exact match anchor id in match explorer
+// IDs are r32-{utcDate}-{utcTime no colon}
 const R32_ANCHOR: Record<string, string> = {
-  '2A|2B':     '2026-06-28',
-  '1C|2F':     '2026-06-29',
-  '1E|3ABCDF': '2026-06-29',
-  '1F|2C':     '2026-06-30',
-  '2E|2I':     '2026-06-30',
-  '1I|3CDFGH': '2026-07-01', // 21:00 UTC → IDT crosses midnight
-  '1A|3CEFHI': '2026-07-01',
-  '1L|3EHIJK': '2026-07-01',
-  '1G|3AEHIJ': '2026-07-01',
-  '1D|3BEFIJ': '2026-07-02',
-  '1H|2J':     '2026-07-02',
-  '2K|2L':     '2026-07-03', // 23:00 UTC → IDT crosses midnight
-  '1B|3EFGIJ': '2026-07-03',
-  '2D|2G':     '2026-07-03',
-  '1J|2H':     '2026-07-04', // 22:00 UTC → IDT crosses midnight
-  '1K|3DEIJL': '2026-07-04',
+  '2A|2B':     'r32-2026-06-28-1900',
+  '1C|2F':     'r32-2026-06-29-1700',
+  '1E|3ABCDF': 'r32-2026-06-29-2030',
+  '1F|2C':     'r32-2026-06-30-0100',
+  '2E|2I':     'r32-2026-06-30-1700',
+  '1I|3CDFGH': 'r32-2026-06-30-2100',
+  '1A|3CEFHI': 'r32-2026-07-01-0100',
+  '1L|3EHIJK': 'r32-2026-07-01-1600',
+  '1G|3AEHIJ': 'r32-2026-07-01-2000',
+  '1D|3BEFIJ': 'r32-2026-07-02-0000',
+  '1H|2J':     'r32-2026-07-02-1900',
+  '2K|2L':     'r32-2026-07-02-2300',
+  '1B|3EFGIJ': 'r32-2026-07-03-0300',
+  '2D|2G':     'r32-2026-07-03-1800',
+  '1J|2H':     'r32-2026-07-03-2200',
+  '1K|3DEIJL': 'r32-2026-07-04-0130',
 };
+
+// Later round anchors (map bracket round index → match explorer section id)
+const LATER_ROUND_HREF = [
+  null,                              // round 0 = R32, handled per-card above
+  '/match-explorer#ko-round-of-16',
+  '/match-explorer#ko-quarter-final',
+  '/match-explorer#ko-semi-final',
+];
 
 // Teams that have already secured their knockout-stage spot
 const QUALIFIED_TEAMS = new Set([
@@ -196,7 +205,9 @@ function RoundCol({ matches, round, lang, label, seeds }: {
       <div style={{ width: CARD_W, height: TOTAL_H, position: 'relative', flexShrink: 0 }}>
         {matches.map((m, i) => {
           const pair = seeds?.[i];
-          const href = pair ? `/match-explorer#r32-${R32_ANCHOR[`${pair[0]}|${pair[1]}`]}` : undefined;
+          const href = pair
+            ? `/match-explorer#${R32_ANCHOR[`${pair[0]}|${pair[1]}`]}`
+            : LATER_ROUND_HREF[round] ?? undefined;
           return <MatchCard key={i} m={m} centerY={cy(round, i)} lang={lang} href={href} />;
         })}
       </div>
@@ -370,7 +381,7 @@ export default function BracketClient({ standings, thirdPlace }: Props) {
               {isHe ? 'גמר' : 'Final'}
             </div>
             <div style={{ width: CARD_W, height: TOTAL_H, position: 'relative' }}>
-              <MatchCard m={TBD} centerY={TOTAL_H / 2} lang={l} />
+              <MatchCard m={TBD} centerY={TOTAL_H / 2} lang={l} href="/match-explorer#ko-final" />
             </div>
           </div>
           <FinalConnector flip />
