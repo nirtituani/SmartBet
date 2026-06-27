@@ -50,10 +50,17 @@ const RIGHT_SEEDS: [string, string][] = [
   ['1B', '3EFGIJ'],  ['1K', '3DEIJL'],
 ];
 
-const ALL_THIRD_SLOTS = [
-  '3ABCDF', '3CDFGH', '3BEFIJ', '3AEHIJ',
-  '3CEFHI', '3EHIJK', '3EFGIJ', '3DEIJL',
-];
+// Hardcoded from the official FIFA WC 2026 bracket draw — not derivable from rankings
+const THIRD_PLACE_SLOTS: Record<string, { name: string; flag: string } | null> = {
+  '3ABCDF': { name: 'Paraguay',             flag: '🇵🇾' },
+  '3CDFGH': { name: 'Sweden',               flag: '🇸🇪' },
+  '3BEFIJ': { name: 'Bosnia & Herzegovina', flag: '🇧🇦' },
+  '3AEHIJ': null,
+  '3CEFHI': null,
+  '3EHIJK': null,
+  '3EFGIJ': null,
+  '3DEIJL': null,
+};
 
 const ROUND_LABELS = ['Round of 32', 'Round of 16', 'Quarter Finals', 'Semi Finals'];
 
@@ -145,49 +152,13 @@ function sortThirdPlace(teams: ThirdPlaceTeam[]): ThirdPlaceTeam[] {
   );
 }
 
-// MCV (most-constrained-variable) greedy: process the slot with fewest eligible
-// qualified teams first to avoid impossible assignments later.
-function resolveThirdPlace(teams: ThirdPlaceTeam[]): Map<string, TeamData | null> {
-  const sorted = sortThirdPlace(teams);
-  const qualifiedGroups = new Set(sorted.slice(0, 8).map(t => t.group));
-  const result = new Map<string, TeamData | null>();
-  const assigned = new Set<string>();
-  const remaining = new Set(ALL_THIRD_SLOTS);
-
-  while (remaining.size > 0) {
-    let bestSlot = '';
-    let bestAvailable: string[] = [];
-    let minCount = Infinity;
-
-    for (const slot of remaining) {
-      const eligible = slot.slice(1).split('').filter(g => qualifiedGroups.has(g) && !assigned.has(g));
-      if (eligible.length < minCount) {
-        minCount = eligible.length;
-        bestSlot = slot;
-        bestAvailable = eligible;
-      }
-    }
-
-    remaining.delete(bestSlot);
-    const pick = sorted.find(t => bestAvailable.includes(t.group) && !assigned.has(t.group));
-    if (pick) {
-      result.set(bestSlot, { name: pick.name, flag: pick.flag });
-      assigned.add(pick.group);
-    } else {
-      result.set(bestSlot, null);
-    }
-  }
-
-  return result;
-}
-
-function makeSlot(label: string, standings: Record<string, (TeamData | null)[]>, thirdMap: Map<string, TeamData | null>): Slot {
+function makeSlot(label: string, standings: Record<string, (TeamData | null)[]>): Slot {
   if (!label.startsWith('3') && label.length === 2) {
     const pos = parseInt(label[0]) - 1;
     return { label, team: standings[label[1]]?.[pos] ?? null };
   }
   if (label.startsWith('3')) {
-    return { label, team: thirdMap.get(label) ?? null };
+    return { label, team: THIRD_PLACE_SLOTS[label] ?? null };
   }
   return { label, team: null };
 }
@@ -374,13 +345,12 @@ function ThirdPlaceTable({ teams, lang }: { teams: ThirdPlaceTeam[]; lang: Lang 
 export default function BracketClient({ standings, thirdPlace }: Props) {
   const { lang } = useLanguage();
   const l = lang as Lang;
-  const thirdMap = resolveThirdPlace(thirdPlace);
 
   const leftR32 = LEFT_SEEDS.map(([a, b]) => ({
-    top: makeSlot(a, standings, thirdMap), bottom: makeSlot(b, standings, thirdMap),
+    top: makeSlot(a, standings), bottom: makeSlot(b, standings),
   }));
   const rightR32 = RIGHT_SEEDS.map(([a, b]) => ({
-    top: makeSlot(a, standings, thirdMap), bottom: makeSlot(b, standings, thirdMap),
+    top: makeSlot(a, standings), bottom: makeSlot(b, standings),
   }));
 
   const isHe = lang === 'he';
