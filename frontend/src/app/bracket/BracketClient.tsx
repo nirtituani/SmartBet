@@ -128,6 +128,12 @@ const QUALIFIED_TEAMS = new Set([
   'Ivory Coast',
   'Netherlands',
   'Japan',
+  'Belgium',
+  'Egypt',
+  'Spain',
+  'Cape Verde',
+  'France',
+  'Norway',
 ]);
 
 function sortThirdPlace(teams: ThirdPlaceTeam[]): ThirdPlaceTeam[] {
