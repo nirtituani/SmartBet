@@ -88,34 +88,36 @@ const R32_ANCHOR: Record<string, string> = {
 // Per-slot hrefs for later rounds.
 // Left side of bracket gets earlier fixtures; right side gets later ones.
 // Anchor IDs match ko-{roundSlug}-{utcDate}-{utcTime no colon} in the explorer.
+// FIFA schedules knockout rounds alternating left/right bracket halves each match.
+// Matches 1,3,5,7 → left bracket; matches 2,4,6,8 → right bracket.
 const LEFT_SLOT_HREFS: Record<number, string[]> = {
-  1: [ // Round of 16 — left slots → first 4 R16 fixtures
+  1: [ // Round of 16 — matches 1,3,5,7 (odd) go to left bracket
     '/match-explorer#ko-round-of-16-2026-07-04-1700',
-    '/match-explorer#ko-round-of-16-2026-07-04-2100',
     '/match-explorer#ko-round-of-16-2026-07-05-2000',
-    '/match-explorer#ko-round-of-16-2026-07-06-0000',
+    '/match-explorer#ko-round-of-16-2026-07-06-1900',
+    '/match-explorer#ko-round-of-16-2026-07-07-1600',
   ],
-  2: [ // Quarter Final — left slots → first 2 QF fixtures
+  2: [ // Quarter Finals — matches 1,3 go to left bracket
     '/match-explorer#ko-quarter-final-2026-07-09-2000',
-    '/match-explorer#ko-quarter-final-2026-07-10-1900',
+    '/match-explorer#ko-quarter-final-2026-07-11-2100',
   ],
-  3: [ // Semi Final — left slot → first SF fixture
+  3: [ // Semi Final — first SF → left bracket
     '/match-explorer#ko-semi-final-2026-07-14-1900',
   ],
 };
 
 const RIGHT_SLOT_HREFS: Record<number, string[]> = {
-  1: [ // Round of 16 — right slots → last 4 R16 fixtures
-    '/match-explorer#ko-round-of-16-2026-07-06-1900',
+  1: [ // Round of 16 — matches 2,4,6,8 (even) go to right bracket
+    '/match-explorer#ko-round-of-16-2026-07-04-2100',
+    '/match-explorer#ko-round-of-16-2026-07-06-0000',
     '/match-explorer#ko-round-of-16-2026-07-07-0000',
-    '/match-explorer#ko-round-of-16-2026-07-07-1600',
     '/match-explorer#ko-round-of-16-2026-07-07-2000',
   ],
-  2: [ // Quarter Final — right slots → last 2 QF fixtures
-    '/match-explorer#ko-quarter-final-2026-07-11-2100',
+  2: [ // Quarter Finals — matches 2,4 go to right bracket
+    '/match-explorer#ko-quarter-final-2026-07-10-1900',
     '/match-explorer#ko-quarter-final-2026-07-12-0100',
   ],
-  3: [ // Semi Final — right slot → second SF fixture
+  3: [ // Semi Final — second SF → right bracket
     '/match-explorer#ko-semi-final-2026-07-15-1900',
   ],
 };
