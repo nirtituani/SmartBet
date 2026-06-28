@@ -161,10 +161,13 @@ _WC26_FIXTURES: list[dict] = [
 
 _KICKOFF_TIMES = ["12:00 EST", "15:00 EST", "18:00 EST", "21:00 EST"]
 
-# team name → group name (precomputed from fixture list)
+# Group stage fixtures only — used for standings calculations
+_GROUP_STAGE_FIXTURES = [f for f in _WC26_FIXTURES if f["group"].startswith("Group ")]
+
+# team name → group name (group stage only, so standings calculations stay correct)
 _TEAM_TO_GROUP: dict[str, str] = {
     f[side]: f["group"]
-    for f in _WC26_FIXTURES
+    for f in _GROUP_STAGE_FIXTURES
     for side in ("home", "away")
 }
 
@@ -192,7 +195,7 @@ async def _fetch_wc_results() -> list[dict]:
 
 def _init_groups() -> dict[str, dict[str, StandingRow]]:
     groups: dict[str, dict[str, StandingRow]] = {}
-    for f in _WC26_FIXTURES:
+    for f in _GROUP_STAGE_FIXTURES:
         g = f["group"]
         if g not in groups:
             groups[g] = {}
@@ -395,7 +398,7 @@ async def fetch_group_standings() -> dict[str, list[StandingRow]]:
     """Calculate group standings from ESPN scoreboard + per-match card data."""
     from datetime import date, timedelta
     today = date.today()
-    end = min(today, date(2026, 7, 2))
+    end = min(today, date(2026, 6, 27))  # group stage ends June 27
     start = date(2026, 6, 11)
 
     dates = []
