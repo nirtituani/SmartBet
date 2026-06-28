@@ -55,11 +55,11 @@ const THIRD_PLACE_SLOTS: Record<string, { name: string; flag: string } | null> =
   '3ABCDF': { name: 'Paraguay',             flag: '🇵🇾' },
   '3CDFGH': { name: 'Sweden',               flag: '🇸🇪' },
   '3BEFIJ': { name: 'Bosnia & Herzegovina', flag: '🇧🇦' },
-  '3AEHIJ': null,
-  '3CEFHI': null,
-  '3EHIJK': null,
-  '3EFGIJ': null,
-  '3DEIJL': null,
+  '3AEHIJ': { name: 'Senegal',              flag: '🇸🇳' },
+  '3CEFHI': { name: 'Ecuador',              flag: '🇪🇨' },
+  '3EHIJK': { name: 'DR Congo',             flag: '🇨🇩' },
+  '3EFGIJ': { name: 'Algeria',              flag: '🇩🇿' },
+  '3DEIJL': { name: 'Ghana',                flag: '🇬🇭' },
 };
 
 const ROUND_LABELS = ['Round of 32', 'Round of 16', 'Quarter Finals', 'Semi Finals'];
@@ -120,30 +120,17 @@ const RIGHT_SLOT_HREFS: Record<number, string[]> = {
   ],
 };
 
-// Teams that have already secured their knockout-stage spot
+// All 32 teams in the Round of 32
 const QUALIFIED_TEAMS = new Set([
-  'Mexico',
-  'USA',
-  'Germany',
-  'Argentina',
-  'Switzerland',
-  'Canada',
-  'South Africa',
-  'Brazil',
-  'Morocco',
-  'Australia',
-  'Ivory Coast',
-  'Netherlands',
-  'Japan',
-  'Belgium',
-  'Egypt',
-  'Spain',
-  'Cape Verde',
-  'France',
-  'Norway',
-  'Paraguay',
-  'Sweden',
-  'Bosnia & Herzegovina',
+  // Group winners
+  'Mexico', 'Switzerland', 'Brazil', 'USA', 'Germany', 'Netherlands',
+  'Belgium', 'Spain', 'France', 'Argentina', 'Colombia', 'England',
+  // Runners-up
+  'South Africa', 'Canada', 'Morocco', 'Australia', 'Ivory Coast', 'Japan',
+  'Egypt', 'Cape Verde', 'Norway', 'Austria', 'Portugal', 'Croatia',
+  // Best 8 third-place
+  'Paraguay', 'Sweden', 'Bosnia & Herzegovina', 'Senegal',
+  'Ecuador', 'DR Congo', 'Algeria', 'Ghana',
 ]);
 
 function sortThirdPlace(teams: ThirdPlaceTeam[]): ThirdPlaceTeam[] {
