@@ -140,6 +140,23 @@ _WC26_FIXTURES: list[dict] = [
     {"id": 70, "home": "Panama",      "away": "Croatia",           "date": "2026-06-23", "time": "19:00 ET", "group": "Group L", "venue": "Toronto"},
     {"id": 71, "home": "Panama",      "away": "England",           "date": "2026-06-27", "time": "17:00 ET", "group": "Group L", "venue": "New York/NJ"},
     {"id": 72, "home": "Croatia",     "away": "Ghana",             "date": "2026-06-27", "time": "17:00 ET", "group": "Group L", "venue": "Philadelphia"},
+    # ROUND OF 32 (UTC times converted to ET = UTC-4; dates adjusted where crossing midnight ET)
+    {"id": 73, "home": "South Africa",        "away": "Canada",               "date": "2026-06-28", "time": "15:00 ET", "group": "Round of 32", "venue": "Kansas City"},
+    {"id": 74, "home": "Brazil",              "away": "Japan",                "date": "2026-06-29", "time": "13:00 ET", "group": "Round of 32", "venue": "Dallas"},
+    {"id": 75, "home": "Germany",             "away": "Paraguay",             "date": "2026-06-29", "time": "16:30 ET", "group": "Round of 32", "venue": "Seattle"},
+    {"id": 76, "home": "Netherlands",         "away": "Morocco",              "date": "2026-06-29", "time": "21:00 ET", "group": "Round of 32", "venue": "Houston"},
+    {"id": 77, "home": "Ivory Coast",         "away": "Norway",               "date": "2026-06-30", "time": "13:00 ET", "group": "Round of 32", "venue": "Atlanta"},
+    {"id": 78, "home": "France",              "away": "Sweden",               "date": "2026-06-30", "time": "17:00 ET", "group": "Round of 32", "venue": "Miami"},
+    {"id": 79, "home": "Mexico",              "away": "Ecuador",              "date": "2026-06-30", "time": "21:00 ET", "group": "Round of 32", "venue": "Dallas"},
+    {"id": 80, "home": "England",             "away": "DR Congo",             "date": "2026-07-01", "time": "12:00 ET", "group": "Round of 32", "venue": "New York/NJ"},
+    {"id": 81, "home": "Belgium",             "away": "Senegal",              "date": "2026-07-01", "time": "16:00 ET", "group": "Round of 32", "venue": "Los Angeles"},
+    {"id": 82, "home": "USA",                 "away": "Bosnia & Herzegovina", "date": "2026-07-01", "time": "20:00 ET", "group": "Round of 32", "venue": "Santa Clara"},
+    {"id": 83, "home": "Spain",               "away": "Austria",              "date": "2026-07-02", "time": "15:00 ET", "group": "Round of 32", "venue": "Boston"},
+    {"id": 84, "home": "Portugal",            "away": "Croatia",              "date": "2026-07-02", "time": "19:00 ET", "group": "Round of 32", "venue": "Philadelphia"},
+    {"id": 85, "home": "Switzerland",         "away": "Algeria",              "date": "2026-07-02", "time": "23:00 ET", "group": "Round of 32", "venue": "Toronto"},
+    {"id": 86, "home": "Australia",           "away": "Egypt",                "date": "2026-07-03", "time": "14:00 ET", "group": "Round of 32", "venue": "Vancouver"},
+    {"id": 87, "home": "Argentina",           "away": "Cape Verde",           "date": "2026-07-03", "time": "18:00 ET", "group": "Round of 32", "venue": "Kansas City"},
+    {"id": 88, "home": "Colombia",            "away": "Ghana",                "date": "2026-07-03", "time": "21:30 ET", "group": "Round of 32", "venue": "Miami"},
 ]
 
 _KICKOFF_TIMES = ["12:00 EST", "15:00 EST", "18:00 EST", "21:00 EST"]

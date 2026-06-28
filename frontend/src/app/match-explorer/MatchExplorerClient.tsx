@@ -44,7 +44,7 @@ const TOTAL_MATCHES = 104;
 
 // Exact knockout schedule from ESPN (times in UTC)
 type KOTeam = { name?: string; flag?: string; seed: string };
-type KOFixture = { date: string; time: string; home: KOTeam; away: KOTeam; round: string };
+type KOFixture = { id?: number; date: string; time: string; home: KOTeam; away: KOTeam; round: string };
 
 function toIDT(date: string, utcTime: string): string {
   return new Date(`${date}T${utcTime}:00Z`).toLocaleTimeString('en-GB', {
@@ -59,22 +59,22 @@ function toIDTDate(date: string, utcTime: string): string {
 }
 
 const R32: KOFixture[] = [
-  { date: '2026-06-28', time: '19:00', round: 'Round of 32', home: { seed: '2A', name: 'South Africa',        flag: '🇿🇦' }, away: { seed: '2B',  name: 'Canada',               flag: '🇨🇦' } },
-  { date: '2026-06-29', time: '17:00', round: 'Round of 32', home: { seed: '1C', name: 'Brazil',              flag: '🇧🇷' }, away: { seed: '2F',  name: 'Japan',                flag: '🇯🇵' } },
-  { date: '2026-06-29', time: '20:30', round: 'Round of 32', home: { seed: '1E', name: 'Germany',             flag: '🇩🇪' }, away: { seed: '3rd', name: 'Paraguay',             flag: '🇵🇾' } },
-  { date: '2026-06-30', time: '01:00', round: 'Round of 32', home: { seed: '1F', name: 'Netherlands',         flag: '🇳🇱' }, away: { seed: '2C',  name: 'Morocco',              flag: '🇲🇦' } },
-  { date: '2026-06-30', time: '17:00', round: 'Round of 32', home: { seed: '2E', name: 'Ivory Coast',         flag: '🇨🇮' }, away: { seed: '2I',  name: 'Norway',               flag: '🇳🇴' } },
-  { date: '2026-06-30', time: '21:00', round: 'Round of 32', home: { seed: '1I', name: 'France',              flag: '🇫🇷' }, away: { seed: '3rd', name: 'Sweden',              flag: '🇸🇪' } },
-  { date: '2026-07-01', time: '01:00', round: 'Round of 32', home: { seed: '1A', name: 'Mexico',              flag: '🇲🇽' }, away: { seed: '3rd C/E',  name: 'Ecuador',              flag: '🇪🇨' } },
-  { date: '2026-07-01', time: '16:00', round: 'Round of 32', home: { seed: '1L', name: 'England',             flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' }, away: { seed: '3rd I/J/K', name: 'DR Congo',             flag: '🇨🇩' } },
-  { date: '2026-07-01', time: '20:00', round: 'Round of 32', home: { seed: '1G', name: 'Belgium',             flag: '🇧🇪' }, away: { seed: '3rd A/I/J', name: 'Senegal',              flag: '🇸🇳' } },
-  { date: '2026-07-02', time: '00:00', round: 'Round of 32', home: { seed: '1D', name: 'USA',                 flag: '🇺🇸' }, away: { seed: '3rd',      name: 'Bosnia & Herzegovina', flag: '🇧🇦' } },
-  { date: '2026-07-02', time: '19:00', round: 'Round of 32', home: { seed: '1H', name: 'Spain',               flag: '🇪🇸' }, away: { seed: '2J',       name: 'Austria',              flag: '🇦🇹' } },
-  { date: '2026-07-02', time: '23:00', round: 'Round of 32', home: { seed: '2K', name: 'Portugal',            flag: '🇵🇹' }, away: { seed: '2L',       name: 'Croatia',              flag: '🇭🇷' } },
-  { date: '2026-07-03', time: '03:00', round: 'Round of 32', home: { seed: '1B', name: 'Switzerland',         flag: '🇨🇭' }, away: { seed: '3rd G/J',  name: 'Algeria',              flag: '🇩🇿' } },
-  { date: '2026-07-03', time: '18:00', round: 'Round of 32', home: { seed: '2D', name: 'Australia',           flag: '🇦🇺' }, away: { seed: '2G',       name: 'Egypt',                flag: '🇪🇬' } },
-  { date: '2026-07-03', time: '22:00', round: 'Round of 32', home: { seed: '1J', name: 'Argentina',           flag: '🇦🇷' }, away: { seed: '2H',       name: 'Cape Verde',           flag: '🇨🇻' } },
-  { date: '2026-07-04', time: '01:30', round: 'Round of 32', home: { seed: '1K', name: 'Colombia',            flag: '🇨🇴' }, away: { seed: '3rd E/I/L', name: 'Ghana',               flag: '🇬🇭' } },
+  { id: 73, date: '2026-06-28', time: '19:00', round: 'Round of 32', home: { seed: '2A', name: 'South Africa',        flag: '🇿🇦' }, away: { seed: '2B',       name: 'Canada',               flag: '🇨🇦' } },
+  { id: 74, date: '2026-06-29', time: '17:00', round: 'Round of 32', home: { seed: '1C', name: 'Brazil',              flag: '🇧🇷' }, away: { seed: '2F',       name: 'Japan',                flag: '🇯🇵' } },
+  { id: 75, date: '2026-06-29', time: '20:30', round: 'Round of 32', home: { seed: '1E', name: 'Germany',             flag: '🇩🇪' }, away: { seed: '3rd',      name: 'Paraguay',             flag: '🇵🇾' } },
+  { id: 76, date: '2026-06-30', time: '01:00', round: 'Round of 32', home: { seed: '1F', name: 'Netherlands',         flag: '🇳🇱' }, away: { seed: '2C',       name: 'Morocco',              flag: '🇲🇦' } },
+  { id: 77, date: '2026-06-30', time: '17:00', round: 'Round of 32', home: { seed: '2E', name: 'Ivory Coast',         flag: '🇨🇮' }, away: { seed: '2I',       name: 'Norway',               flag: '🇳🇴' } },
+  { id: 78, date: '2026-06-30', time: '21:00', round: 'Round of 32', home: { seed: '1I', name: 'France',              flag: '🇫🇷' }, away: { seed: '3rd',      name: 'Sweden',               flag: '🇸🇪' } },
+  { id: 79, date: '2026-07-01', time: '01:00', round: 'Round of 32', home: { seed: '1A', name: 'Mexico',              flag: '🇲🇽' }, away: { seed: '3rd C/E',  name: 'Ecuador',              flag: '🇪🇨' } },
+  { id: 80, date: '2026-07-01', time: '16:00', round: 'Round of 32', home: { seed: '1L', name: 'England',             flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' }, away: { seed: '3rd I/J/K', name: 'DR Congo',             flag: '🇨🇩' } },
+  { id: 81, date: '2026-07-01', time: '20:00', round: 'Round of 32', home: { seed: '1G', name: 'Belgium',             flag: '🇧🇪' }, away: { seed: '3rd A/I/J', name: 'Senegal',              flag: '🇸🇳' } },
+  { id: 82, date: '2026-07-02', time: '00:00', round: 'Round of 32', home: { seed: '1D', name: 'USA',                 flag: '🇺🇸' }, away: { seed: '3rd',      name: 'Bosnia & Herzegovina', flag: '🇧🇦' } },
+  { id: 83, date: '2026-07-02', time: '19:00', round: 'Round of 32', home: { seed: '1H', name: 'Spain',               flag: '🇪🇸' }, away: { seed: '2J',       name: 'Austria',              flag: '🇦🇹' } },
+  { id: 84, date: '2026-07-02', time: '23:00', round: 'Round of 32', home: { seed: '2K', name: 'Portugal',            flag: '🇵🇹' }, away: { seed: '2L',       name: 'Croatia',              flag: '🇭🇷' } },
+  { id: 85, date: '2026-07-03', time: '03:00', round: 'Round of 32', home: { seed: '1B', name: 'Switzerland',         flag: '🇨🇭' }, away: { seed: '3rd G/J',  name: 'Algeria',              flag: '🇩🇿' } },
+  { id: 86, date: '2026-07-03', time: '18:00', round: 'Round of 32', home: { seed: '2D', name: 'Australia',           flag: '🇦🇺' }, away: { seed: '2G',       name: 'Egypt',                flag: '🇪🇬' } },
+  { id: 87, date: '2026-07-03', time: '22:00', round: 'Round of 32', home: { seed: '1J', name: 'Argentina',           flag: '🇦🇷' }, away: { seed: '2H',       name: 'Cape Verde',           flag: '🇨🇻' } },
+  { id: 88, date: '2026-07-04', time: '01:30', round: 'Round of 32', home: { seed: '1K', name: 'Colombia',            flag: '🇨🇴' }, away: { seed: '3rd E/I/L', name: 'Ghana',               flag: '🇬🇭' } },
 ];
 
 type LaterFixture = { date: string; time: string; label: string; labelHe: string };
@@ -210,16 +210,27 @@ function KnockoutSection({ isHe, lang }: { isHe: boolean; lang: string }) {
               {fmtDate(date)}
             </span>
           </div>
-          {byDate[date].map((f, i) => (
-            <div key={i} id={`r32-${f.date}-${f.time.replace(':', '')}`} className="match-card match-card--tbd glass-card">
-              <KOTeamSlot team={f.home} />
-              <div className="match-card__center">
-                <span className="match-card__kickoff match-card__kickoff--tbd">{toIDT(f.date, f.time)} IDT</span>
-                <span className="match-card__meta">{isHe ? 'שלב 32' : 'Round of 32'}</span>
+          {byDate[date].map((f, i) => {
+            const inner = (
+              <>
+                <KOTeamSlot team={f.home} />
+                <div className="match-card__center">
+                  <span className="match-card__kickoff match-card__kickoff--tbd">{toIDT(f.date, f.time)} IDT</span>
+                  <span className="match-card__meta">{isHe ? 'שלב 32' : 'Round of 32'}</span>
+                </div>
+                <KOTeamSlotAway team={f.away} />
+              </>
+            );
+            return f.id ? (
+              <Link key={i} href={`/match/${f.id}`} id={`r32-${f.date}-${f.time.replace(':', '')}`} className="match-card match-card--tbd glass-card">
+                {inner}
+              </Link>
+            ) : (
+              <div key={i} id={`r32-${f.date}-${f.time.replace(':', '')}`} className="match-card match-card--tbd glass-card">
+                {inner}
               </div>
-              <KOTeamSlotAway team={f.away} />
-            </div>
-          ))}
+            );
+          })}
         </section>
       ))}
 
@@ -292,8 +303,10 @@ export default function MatchExplorerClient({ matches: initialMatches }: { match
     }
   }, []);
 
-  const finishedMatches = matches.filter(m => m.status === 'finished');
-  const upcomingMatches = matches.filter(m => m.status !== 'finished');
+  // Only group stage matches in the main list — KO matches are shown in KnockoutSection
+  const groupStageMatches = matches.filter(m => m.group.startsWith('Group '));
+  const finishedMatches = groupStageMatches.filter(m => m.status === 'finished');
+  const upcomingMatches = groupStageMatches.filter(m => m.status !== 'finished');
 
   const groupedPast = groupMatchesByDate(finishedMatches);
   const groupedFuture = groupMatchesByDate(upcomingMatches);
