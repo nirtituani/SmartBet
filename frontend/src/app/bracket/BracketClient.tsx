@@ -120,18 +120,6 @@ const RIGHT_SLOT_HREFS: Record<number, string[]> = {
   ],
 };
 
-// All 32 teams in the Round of 32
-const QUALIFIED_TEAMS = new Set([
-  // Group winners
-  'Mexico', 'Switzerland', 'Brazil', 'USA', 'Germany', 'Netherlands',
-  'Belgium', 'Spain', 'France', 'Argentina', 'Colombia', 'England',
-  // Runners-up
-  'South Africa', 'Canada', 'Morocco', 'Australia', 'Ivory Coast', 'Japan',
-  'Egypt', 'Cape Verde', 'Norway', 'Austria', 'Portugal', 'Croatia',
-  // Best 8 third-place
-  'Paraguay', 'Sweden', 'Bosnia & Herzegovina', 'Senegal',
-  'Ecuador', 'DR Congo', 'Algeria', 'Ghana',
-]);
 
 function sortThirdPlace(teams: ThirdPlaceTeam[]): ThirdPlaceTeam[] {
   return [...teams].sort(
@@ -160,9 +148,8 @@ const tbds = (n: number): BracketMatch[] => Array(n).fill(TBD);
 
 function TeamRow({ s, lang }: { s: Slot; lang: Lang }) {
   if (s.team) {
-    const qualified = QUALIFIED_TEAMS.has(s.team.name);
     return (
-      <div className={`bk-team${qualified ? ' bk-team--qualified' : ''}`}>
+      <div className="bk-team bk-team--qualified">
         <span className="bk-flag">{s.team.flag}</span>
         <span className="bk-name">{translateTeam(s.team.name, lang)}</span>
       </div>
