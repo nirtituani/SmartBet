@@ -167,7 +167,7 @@ function KOTeamSlotAway({ team }: { team: KOTeam }) {
   );
 }
 
-function KnockoutSection({ isHe, lang }: { isHe: boolean; lang: string }) {
+function KnockoutSection({ isHe, lang, r32Scores }: { isHe: boolean; lang: string; r32Scores: Record<number, Match> }) {
   // Group R32 fixtures by IDT date (some UTC times cross midnight into the next IDT day)
   const byDate = R32.reduce<Record<string, KOFixture[]>>((acc, f) => {
     const idtDate = toIDTDate(f.date, f.time);
@@ -211,22 +211,36 @@ function KnockoutSection({ isHe, lang }: { isHe: boolean; lang: string }) {
             </span>
           </div>
           {byDate[date].map((f, i) => {
+            const live = f.id ? r32Scores[f.id] : undefined;
+            const finished = live?.status === 'finished';
+            const isLive = live?.status === 'live';
+            const hasScore = live && live.score_home !== null && live.score_away !== null;
+            const cardCls = `match-card glass-card${finished ? ' match-card--finished' : isLive ? ' match-card--live' : ' match-card--tbd'}`;
             const inner = (
               <>
                 <KOTeamSlot team={f.home} />
                 <div className="match-card__center">
-                  <span className="match-card__kickoff match-card__kickoff--tbd">{toIDT(f.date, f.time)} IDT</span>
-                  <span className="match-card__meta">{isHe ? 'שלב 32' : 'Round of 32'}</span>
+                  {hasScore ? (
+                    <span className={`match-card__score${isLive ? ' match-card__score--live' : ''}`}>
+                      {live!.score_home} – {live!.score_away}
+                    </span>
+                  ) : (
+                    <span className="match-card__kickoff match-card__kickoff--tbd">{toIDT(f.date, f.time)} IDT</span>
+                  )}
+                  <span className="match-card__meta">
+                    {isLive && <span className="match-card__live-dot" />}
+                    {isHe ? 'שלב 32' : 'Round of 32'}
+                  </span>
                 </div>
                 <KOTeamSlotAway team={f.away} />
               </>
             );
             return f.id ? (
-              <Link key={i} href={`/match/${f.id}`} id={`r32-${f.date}-${f.time.replace(':', '')}`} className="match-card match-card--tbd glass-card">
+              <Link key={i} href={`/match/${f.id}`} id={`r32-${f.date}-${f.time.replace(':', '')}`} className={cardCls}>
                 {inner}
               </Link>
             ) : (
-              <div key={i} id={`r32-${f.date}-${f.time.replace(':', '')}`} className="match-card match-card--tbd glass-card">
+              <div key={i} id={`r32-${f.date}-${f.time.replace(':', '')}`} className={cardCls}>
                 {inner}
               </div>
             );
@@ -308,6 +322,11 @@ export default function MatchExplorerClient({ matches: initialMatches }: { match
   const finishedMatches = groupStageMatches.filter(m => m.status === 'finished');
   const upcomingMatches = groupStageMatches.filter(m => m.status !== 'finished');
 
+  const r32Scores: Record<number, Match> = {};
+  for (const m of matches) {
+    if (m.group === 'Round of 32') r32Scores[m.id] = m;
+  }
+
   const groupedPast = groupMatchesByDate(finishedMatches);
   const groupedFuture = groupMatchesByDate(upcomingMatches);
   const pastDates = Object.keys(groupedPast).sort();
@@ -344,7 +363,7 @@ export default function MatchExplorerClient({ matches: initialMatches }: { match
 
       {futureDates.map(d => renderDateSection(d, groupedFuture))}
 
-      <KnockoutSection isHe={lang === 'he'} lang={lang} />
+      <KnockoutSection isHe={lang === 'he'} lang={lang} r32Scores={r32Scores} />
     </main>
   );
 }
