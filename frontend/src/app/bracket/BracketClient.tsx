@@ -150,6 +150,24 @@ const TBD: BracketMatch = {
 };
 const tbds = (n: number): BracketMatch[] => Array(n).fill(TBD);
 
+function getWinner(m: BracketMatch): Slot {
+  const r = m.result;
+  if (!r || r.status !== 'finished') return { label: 'TBD', team: null };
+  if (r.topScore != null && r.bottomScore != null) {
+    if (r.topScore > r.bottomScore) return m.top;
+    if (r.bottomScore > r.topScore) return m.bottom;
+  }
+  return { label: 'TBD', team: null };
+}
+
+function buildNextRound(matches: BracketMatch[]): BracketMatch[] {
+  const result: BracketMatch[] = [];
+  for (let i = 0; i < matches.length; i += 2) {
+    result.push({ top: getWinner(matches[i]), bottom: getWinner(matches[i + 1]) });
+  }
+  return result;
+}
+
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
 function TeamRow({ s, score, isWinner, hasResult, lang }: {
@@ -352,6 +370,16 @@ export default function BracketClient({ standings, thirdPlace, r32Results }: Pro
     return { top, bottom, result: r ? { topScore: r.homeScore, bottomScore: r.awayScore, status: r.status } : undefined };
   });
 
+  const leftR16 = buildNextRound(leftR32);
+  const leftQF  = buildNextRound(leftR16);
+  const leftSF  = buildNextRound(leftQF);
+  const rightR16 = buildNextRound(rightR32);
+  const rightQF  = buildNextRound(rightR16);
+  const rightSF  = buildNextRound(rightQF);
+
+  const leftRounds  = [leftR32,  leftR16,  leftQF,  leftSF];
+  const rightRounds = [rightR32, rightR16, rightQF, rightSF];
+
   const isHe = lang === 'he';
 
   return (
@@ -370,7 +398,7 @@ export default function BracketClient({ standings, thirdPlace, r32Results }: Pro
           {[0, 1, 2, 3].map(r => (
             <div key={`L${r}`} style={{ display: 'flex', alignItems: 'flex-start' }}>
               <RoundCol
-                matches={r === 0 ? leftR32 : tbds(8 / Math.pow(2, r))}
+                matches={leftRounds[r]}
                 round={r}
                 lang={l}
                 label={ROUND_LABELS[r]}
@@ -398,7 +426,7 @@ export default function BracketClient({ standings, thirdPlace, r32Results }: Pro
             <div key={`R${r}`} style={{ display: 'flex', alignItems: 'flex-start' }}>
               {r < 3 && <Connector fromRound={r} flip />}
               <RoundCol
-                matches={r === 0 ? rightR32 : tbds(8 / Math.pow(2, r))}
+                matches={rightRounds[r]}
                 round={r}
                 lang={l}
                 label={ROUND_LABELS[r]}
