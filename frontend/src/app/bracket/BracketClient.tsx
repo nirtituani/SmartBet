@@ -7,7 +7,8 @@ import type { Lang } from '@/lib/i18n';
 
 type TeamData = { name: string; flag: string };
 type Slot = { label: string; team: TeamData | null };
-type BracketMatch = { top: Slot; bottom: Slot };
+type MatchResult = { topScore: number | null; bottomScore: number | null; status: string };
+type BracketMatch = { top: Slot; bottom: Slot; result?: MatchResult };
 
 export type ThirdPlaceTeam = {
   name: string; flag: string; group: string;
@@ -17,9 +18,12 @@ export type ThirdPlaceTeam = {
   fair_play: number;
 };
 
+export type R32Result = { homeScore: number | null; awayScore: number | null; status: string };
+
 interface Props {
   standings: Record<string, (TeamData | null)[]>;
   thirdPlace: ThirdPlaceTeam[];
+  r32Results: Record<string, R32Result>;
 }
 
 // Layout constants
@@ -148,12 +152,17 @@ const tbds = (n: number): BracketMatch[] => Array(n).fill(TBD);
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
-function TeamRow({ s, lang }: { s: Slot; lang: Lang }) {
+function TeamRow({ s, score, isWinner, hasResult, lang }: {
+  s: Slot; score?: number | null; isWinner?: boolean; hasResult?: boolean; lang: Lang;
+}) {
   if (s.team) {
+    let cls = 'bk-team bk-team--qualified';
+    if (hasResult) cls = isWinner ? 'bk-team bk-team--winner' : 'bk-team bk-team--loser';
     return (
-      <div className="bk-team bk-team--qualified">
+      <div className={cls}>
         <span className="bk-flag">{s.team.flag}</span>
         <span className="bk-name">{translateTeam(s.team.name, lang)}</span>
+        {score != null && <span className="bk-score">{score}</span>}
       </div>
     );
   }
@@ -166,17 +175,23 @@ function TeamRow({ s, lang }: { s: Slot; lang: Lang }) {
 
 function MatchCard({ m, centerY, lang, href }: { m: BracketMatch; centerY: number; lang: Lang; href?: string }) {
   const style = { top: centerY - CARD_H / 2, width: CARD_W };
+  const r = m.result;
+  const hasResult = r?.status === 'finished' || r?.status === 'live';
+  const topWinner = hasResult && r!.topScore != null && r!.bottomScore != null && r!.topScore > r!.bottomScore;
+  const bottomWinner = hasResult && r!.topScore != null && r!.bottomScore != null && r!.bottomScore > r!.topScore;
+  const live = r?.status === 'live';
   const inner = (
     <>
-      <TeamRow s={m.top} lang={lang} />
+      <TeamRow s={m.top} score={r?.topScore} isWinner={topWinner} hasResult={hasResult} lang={lang} />
       <div className="bk-sep" />
-      <TeamRow s={m.bottom} lang={lang} />
+      <TeamRow s={m.bottom} score={r?.bottomScore} isWinner={bottomWinner} hasResult={hasResult} lang={lang} />
     </>
   );
+  const extraCls = live ? ' bk-card--live' : '';
   if (href) {
-    return <Link href={href} className="bk-card bk-card--link" style={style}>{inner}</Link>;
+    return <Link href={href} className={`bk-card bk-card--link${extraCls}`} style={style}>{inner}</Link>;
   }
-  return <div className="bk-card" style={style}>{inner}</div>;
+  return <div className={`bk-card${extraCls}`} style={style}>{inner}</div>;
 }
 
 function RoundCol({ matches, round, lang, label, seeds, slotHrefs }: {
@@ -318,16 +333,24 @@ function ThirdPlaceTable({ teams, lang }: { teams: ThirdPlaceTeam[]; lang: Lang 
 
 // ── Main component ──────────────────────────────────────────────────────────────
 
-export default function BracketClient({ standings, thirdPlace }: Props) {
+export default function BracketClient({ standings, thirdPlace, r32Results }: Props) {
   const { lang } = useLanguage();
   const l = lang as Lang;
 
-  const leftR32 = LEFT_SEEDS.map(([a, b]) => ({
-    top: makeSlot(a, standings), bottom: makeSlot(b, standings),
-  }));
-  const rightR32 = RIGHT_SEEDS.map(([a, b]) => ({
-    top: makeSlot(a, standings), bottom: makeSlot(b, standings),
-  }));
+  const leftR32 = LEFT_SEEDS.map(([a, b]) => {
+    const top = makeSlot(a, standings);
+    const bottom = makeSlot(b, standings);
+    const key = top.team && bottom.team ? `${top.team.name}|${bottom.team.name}` : null;
+    const r = key ? r32Results[key] : undefined;
+    return { top, bottom, result: r ? { topScore: r.homeScore, bottomScore: r.awayScore, status: r.status } : undefined };
+  });
+  const rightR32 = RIGHT_SEEDS.map(([a, b]) => {
+    const top = makeSlot(a, standings);
+    const bottom = makeSlot(b, standings);
+    const key = top.team && bottom.team ? `${top.team.name}|${bottom.team.name}` : null;
+    const r = key ? r32Results[key] : undefined;
+    return { top, bottom, result: r ? { topScore: r.homeScore, bottomScore: r.awayScore, status: r.status } : undefined };
+  });
 
   const isHe = lang === 'he';
 

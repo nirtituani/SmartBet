@@ -118,6 +118,29 @@
   color: var(--neon-gold);
 }
 
+.bk-team--winner {
+  background: rgba(246, 201, 14, 0.12);
+  color: var(--neon-gold);
+}
+
+.bk-team--loser {
+  opacity: 0.45;
+  color: var(--text-muted);
+}
+
+.bk-score {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 700;
+  color: inherit;
+  flex-shrink: 0;
+}
+
+.bk-card--live {
+  border-color: rgba(74, 222, 128, 0.4);
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.15);
+}
+
 /* ── Third-place ranking table ─────────────────────────────────────────────── */
 
 .tp-section {
