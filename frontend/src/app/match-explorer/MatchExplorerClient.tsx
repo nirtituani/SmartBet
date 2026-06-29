@@ -167,7 +167,79 @@ function KOTeamSlotAway({ team }: { team: KOTeam }) {
   );
 }
 
+// R16 matchups in LATER_FIXTURES order: each entry is [homeR32Id, awayR32Id]
+// Mirrors the bracket structure (LEFT_SEEDS/RIGHT_SEEDS pairs feed alternating R16 slots)
+const R16_PAIRINGS: [number, number][] = [
+  [75, 78], // 07-04 17:00 — winner Germany/Paraguay vs winner France/Sweden
+  [74, 77], // 07-04 21:00 — winner Brazil/Japan vs winner Ivory Coast/Norway
+  [73, 76], // 07-05 20:00 — winner S.Africa/Canada vs winner Netherlands/Morocco
+  [79, 80], // 07-06 00:00 — winner Mexico/Ecuador vs winner England/DR Congo
+  [84, 83], // 07-06 19:00 — winner Portugal/Croatia vs winner Spain/Austria
+  [87, 86], // 07-07 00:00 — winner Argentina/Cape Verde vs winner Australia/Egypt
+  [82, 81], // 07-07 16:00 — winner USA/Bosnia vs winner Belgium/Senegal
+  [85, 88], // 07-07 20:00 — winner Switzerland/Algeria vs winner Colombia/Ghana
+];
+
+// QF matchups in LATER_FIXTURES order: each entry is [homeR16Idx, awayR16Idx] (index into R16_PAIRINGS)
+const QF_FROM_R16: [number, number][] = [
+  [0, 2], // 07-09 20:00 — R16[0] winner vs R16[2] winner (left bracket)
+  [1, 3], // 07-10 19:00 — R16[1] winner vs R16[3] winner (right bracket)
+  [4, 6], // 07-11 21:00 — R16[4] winner vs R16[6] winner (left bracket)
+  [5, 7], // 07-12 01:00 — R16[5] winner vs R16[7] winner (right bracket)
+];
+
+// SF matchups: each entry is [homeQFIdx, awayQFIdx]
+const SF_FROM_QF: [number, number][] = [
+  [0, 2], // 07-14 19:00 — QF[0] winner vs QF[2] winner (left SF)
+  [1, 3], // 07-15 19:00 — QF[1] winner vs QF[3] winner (right SF)
+];
+
 function KnockoutSection({ isHe, lang, r32Scores }: { isHe: boolean; lang: string; r32Scores: Record<number, Match> }) {
+  // Derive R32 winners from live scores
+  const r32ById: Record<number, KOFixture> = {};
+  for (const f of R32) { if (f.id) r32ById[f.id] = f; }
+  const r32Winners: Record<number, KOTeam | null> = {};
+  for (const [idStr, m] of Object.entries(r32Scores)) {
+    const id = Number(idStr);
+    const f = r32ById[id];
+    if (!f || m.status !== 'finished' || m.score_home === null || m.score_away === null) continue;
+    r32Winners[id] = m.score_home > m.score_away ? f.home :
+                     m.score_away > m.score_home ? f.away : null;
+  }
+
+  // Build R16 team pairs keyed by "date-time" matching LATER_FIXTURES
+  const r16Fixtures = LATER_FIXTURES.filter(f => f.label === 'Round of 16');
+  const r16TeamsMap: Record<string, { home: KOTeam | null; away: KOTeam | null }> = {};
+  R16_PAIRINGS.forEach(([homeId, awayId], i) => {
+    const f = r16Fixtures[i];
+    if (f) r16TeamsMap[`${f.date}-${f.time}`] = { home: r32Winners[homeId] ?? null, away: r32Winners[awayId] ?? null };
+  });
+
+  // Build QF team pairs — derive from R16 winners (will populate once R16 results exist)
+  // r16Winners[i] = winner of R16 match i, derived from backend R16 fixture scores (future)
+  const r16Winners: (KOTeam | null)[] = Array(8).fill(null); // populated when R16 scores available
+  const qfFixtures = LATER_FIXTURES.filter(f => f.label === 'Quarter Final');
+  const qfTeamsMap: Record<string, { home: KOTeam | null; away: KOTeam | null }> = {};
+  QF_FROM_R16.forEach(([homeIdx, awayIdx], i) => {
+    const f = qfFixtures[i];
+    if (f) qfTeamsMap[`${f.date}-${f.time}`] = { home: r16Winners[homeIdx], away: r16Winners[awayIdx] };
+  });
+
+  // Build SF team pairs — derive from QF winners (future)
+  const qfWinners: (KOTeam | null)[] = Array(4).fill(null);
+  const sfFixtures = LATER_FIXTURES.filter(f => f.label === 'Semi Final');
+  const sfTeamsMap: Record<string, { home: KOTeam | null; away: KOTeam | null }> = {};
+  SF_FROM_QF.forEach(([homeIdx, awayIdx], i) => {
+    const f = sfFixtures[i];
+    if (f) sfTeamsMap[`${f.date}-${f.time}`] = { home: qfWinners[homeIdx], away: qfWinners[awayIdx] };
+  });
+
+  const teamsForRound: Record<string, Record<string, { home: KOTeam | null; away: KOTeam | null }>> = {
+    'Round of 16':  r16TeamsMap,
+    'Quarter Final': qfTeamsMap,
+    'Semi Final':   sfTeamsMap,
+  };
+
   // Group R32 fixtures by IDT date (some UTC times cross midnight into the next IDT day)
   const byDate = R32.reduce<Record<string, KOFixture[]>>((acc, f) => {
     const idtDate = toIDTDate(f.date, f.time);
@@ -268,22 +340,21 @@ function KnockoutSection({ isHe, lang, r32Scores }: { isHe: boolean; lang: strin
                     {fmtDate(date)}
                   </span>
                 </div>
-                {byDateLater[date].map((f, i) => (
-                  <div key={i} id={`ko-${roundSlug}-${f.date}-${f.time.replace(':', '')}`} className="match-card match-card--tbd glass-card">
-                    <div className="match-card__team">
-                      <span className="match-card__flag match-card__flag--tbd">?</span>
-                      <span className="match-card__team-name match-card__team-name--tbd">TBD</span>
+                {byDateLater[date].map((f, i) => {
+                  const teams = teamsForRound[round]?.[`${f.date}-${f.time}`];
+                  const homeTeam: KOTeam = teams?.home ?? { seed: 'TBD' };
+                  const awayTeam: KOTeam = teams?.away ?? { seed: 'TBD' };
+                  return (
+                    <div key={i} id={`ko-${roundSlug}-${f.date}-${f.time.replace(':', '')}`} className="match-card match-card--tbd glass-card">
+                      <KOTeamSlot team={homeTeam} />
+                      <div className="match-card__center">
+                        <span className="match-card__kickoff match-card__kickoff--tbd">{toIDT(f.date, f.time)} IDT</span>
+                        <span className="match-card__meta">{isHe ? f.labelHe : f.label}</span>
+                      </div>
+                      <KOTeamSlotAway team={awayTeam} />
                     </div>
-                    <div className="match-card__center">
-                      <span className="match-card__kickoff match-card__kickoff--tbd">{toIDT(f.date, f.time)} IDT</span>
-                      <span className="match-card__meta">{isHe ? f.labelHe : f.label}</span>
-                    </div>
-                    <div className="match-card__team match-card__team--away">
-                      <span className="match-card__flag match-card__flag--tbd">?</span>
-                      <span className="match-card__team-name match-card__team-name--tbd">TBD</span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </section>
             ))}
           </div>
