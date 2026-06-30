@@ -36,6 +36,7 @@ export default async function BracketPage() {
         homeScore: m.score_home,
         awayScore: m.score_away,
         status: m.status,
+        winner: m.winner ?? null,
       };
     }
   }

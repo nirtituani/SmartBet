@@ -18,6 +18,7 @@ export interface Match {
   score_home: number | null;
   score_away: number | null;
   status: 'scheduled' | 'live' | 'finished';
+  winner?: 'home' | 'away' | null;
 }
 
 export interface FormResult {

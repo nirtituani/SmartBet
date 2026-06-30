@@ -7,7 +7,7 @@ import type { Lang } from '@/lib/i18n';
 
 type TeamData = { name: string; flag: string };
 type Slot = { label: string; team: TeamData | null };
-type MatchResult = { topScore: number | null; bottomScore: number | null; status: string };
+type MatchResult = { topScore: number | null; bottomScore: number | null; status: string; winner?: string | null };
 type BracketMatch = { top: Slot; bottom: Slot; result?: MatchResult };
 
 export type ThirdPlaceTeam = {
@@ -18,7 +18,7 @@ export type ThirdPlaceTeam = {
   fair_play: number;
 };
 
-export type R32Result = { homeScore: number | null; awayScore: number | null; status: string };
+export type R32Result = { homeScore: number | null; awayScore: number | null; status: string; winner: string | null };
 
 interface Props {
   standings: Record<string, (TeamData | null)[]>;
@@ -156,6 +156,9 @@ function getWinner(m: BracketMatch): Slot {
   if (r.topScore != null && r.bottomScore != null) {
     if (r.topScore > r.bottomScore) return m.top;
     if (r.bottomScore > r.topScore) return m.bottom;
+    // Scores level after 90/120 min — penalty winner from ESPN
+    if (r.winner === 'home') return m.top;
+    if (r.winner === 'away') return m.bottom;
   }
   return { label: 'TBD', team: null };
 }
@@ -360,14 +363,14 @@ export default function BracketClient({ standings, thirdPlace, r32Results }: Pro
     const bottom = makeSlot(b, standings);
     const key = top.team && bottom.team ? `${top.team.name}|${bottom.team.name}` : null;
     const r = key ? r32Results[key] : undefined;
-    return { top, bottom, result: r ? { topScore: r.homeScore, bottomScore: r.awayScore, status: r.status } : undefined };
+    return { top, bottom, result: r ? { topScore: r.homeScore, bottomScore: r.awayScore, status: r.status, winner: r.winner } : undefined };
   });
   const rightR32 = RIGHT_SEEDS.map(([a, b]) => {
     const top = makeSlot(a, standings);
     const bottom = makeSlot(b, standings);
     const key = top.team && bottom.team ? `${top.team.name}|${bottom.team.name}` : null;
     const r = key ? r32Results[key] : undefined;
-    return { top, bottom, result: r ? { topScore: r.homeScore, bottomScore: r.awayScore, status: r.status } : undefined };
+    return { top, bottom, result: r ? { topScore: r.homeScore, bottomScore: r.awayScore, status: r.status, winner: r.winner } : undefined };
   });
 
   const leftR16 = buildNextRound(leftR32);

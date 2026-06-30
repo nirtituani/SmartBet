@@ -203,8 +203,12 @@ function KnockoutSection({ isHe, lang, r32Scores }: { isHe: boolean; lang: strin
     const id = Number(idStr);
     const f = r32ById[id];
     if (!f || m.status !== 'finished' || m.score_home === null || m.score_away === null) continue;
-    r32Winners[id] = m.score_home > m.score_away ? f.home :
-                     m.score_away > m.score_home ? f.away : null;
+    if (m.score_home > m.score_away) r32Winners[id] = f.home;
+    else if (m.score_away > m.score_home) r32Winners[id] = f.away;
+    // Tied after AET — decided by penalties; ESPN sets winner field
+    else if (m.winner === 'home') r32Winners[id] = f.home;
+    else if (m.winner === 'away') r32Winners[id] = f.away;
+    else r32Winners[id] = null;
   }
 
   // Build R16 team pairs keyed by "date-time" matching LATER_FIXTURES

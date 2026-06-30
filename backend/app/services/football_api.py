@@ -1205,8 +1205,9 @@ def _sort_matches(matches: list[Match]) -> list[Match]:
     return sorted(matches, key=lambda m: (m.kickoff_date, m.kickoff_time))
 
 
-_ESPN_SCORES_CACHE: dict[str, tuple[float, tuple[int | None, int | None, str]]] = {}
-# key: "HomeTeam|AwayTeam"  value: (expires_at, (score_home, score_away, status))
+_ESPN_SCORES_CACHE: dict[str, tuple[float, tuple[int | None, int | None, str, str | None]]] = {}
+# key: "HomeTeam|AwayTeam"  value: (expires_at, (score_home, score_away, status, winner))
+# winner: "home" | "away" | None  (only set for penalty-shootout decisions)
 
 _ESPN_SCOREBOARD = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard"
 _ESPN_SUMMARY   = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/summary"
@@ -1293,17 +1294,16 @@ async def fetch_espn_lineup(home_name: str, away_name: str, fixture_date: str) -
         return None
 
 
-_SCORE_REDIS_TTL = 7 * 24 * 3600  # 7 days for finished scores in Redis
+_SCORE_REDIS_TTL = 120 * 24 * 3600  # 120 days — covers the full tournament
 
 
 async def _load_scores_from_redis() -> None:
     """Pre-populate in-memory score cache from Redis on startup (instant, no ESPN call)."""
     from app.core.cache import get_cached
-    data = await get_cached("espn_scores_v1") or {}
-    now = time.time()
+    # v2 adds winner field; v1 entries are 3-element tuples and are discarded on migration
+    data = await get_cached("espn_scores_v2") or {}
     for key, (expires, score_tuple) in data.items():
-        if expires > now:
-            _ESPN_SCORES_CACHE[key] = (expires, tuple(score_tuple))
+        _ESPN_SCORES_CACHE[key] = (expires, tuple(score_tuple))
 
 
 async def fetch_scores_for_date(date_str: str) -> None:
@@ -1343,6 +1343,12 @@ async def fetch_scores_for_date(date_str: str) -> None:
                     sa = int(float(away.get("score", 0)))
                 except (ValueError, TypeError):
                     sh, sa = None, None
+                # ESPN sets winner=True on the winning competitor (including penalty decisions)
+                winner: str | None = None
+                if home.get("winner"):
+                    winner = "home"
+                elif away.get("winner"):
+                    winner = "away"
                 status = "finished"
                 expires = long_ttl
             elif state == "in":
@@ -1351,19 +1357,20 @@ async def fetch_scores_for_date(date_str: str) -> None:
                     sa = int(float(away.get("score", 0)))
                 except (ValueError, TypeError):
                     sh, sa = None, None
+                winner = None
                 status = "live"
                 expires = short_ttl
             else:
-                sh, sa, status = None, None, "scheduled"
+                sh, sa, status, winner = None, None, "scheduled", None
                 expires = short_ttl
 
             key = f"{home_name}|{away_name}"
-            _ESPN_SCORES_CACHE[key] = (expires, (sh, sa, status))
+            _ESPN_SCORES_CACHE[key] = (expires, (sh, sa, status, winner))
 
         # Persist finished scores to Redis so they survive restarts
         finished = {k: (exp, list(v)) for k, (exp, v) in _ESPN_SCORES_CACHE.items() if v[2] == "finished"}
         if finished:
-            await set_cached("espn_scores_v1", finished, ttl=_SCORE_REDIS_TTL)
+            await set_cached("espn_scores_v2", finished, ttl=_SCORE_REDIS_TTL)
     except Exception:
         pass
 
@@ -1401,7 +1408,7 @@ async def refresh_scores_today() -> None:
             # Past date: skip only if every fixture is already cached as finished
             fixtures = _FIXTURES_BY_DATE.get(d.isoformat(), [])
             all_done = all(
-                _ESPN_SCORES_CACHE.get(f"{f['home']}|{f['away']}", (0, (None, None, "")))[1][2] == "finished"
+                _ESPN_SCORES_CACHE.get(f"{f['home']}|{f['away']}", (0, (None, None, "", None)))[1][2] == "finished"
                 for f in fixtures
             )
             if not all_done:
@@ -1413,20 +1420,25 @@ async def refresh_scores_today() -> None:
     await delete_cached("upcoming_matches")
 
 
-def _get_cached_score(home_name: str, away_name: str) -> tuple[int | None, int | None, str]:
+def _get_cached_score(home_name: str, away_name: str) -> tuple[int | None, int | None, str, str | None]:
     key = f"{home_name}|{away_name}"
     entry = _ESPN_SCORES_CACHE.get(key)
-    if entry and time.time() < entry[0]:
-        return entry[1]
-    return None, None, "scheduled"
+    if entry:
+        score_tuple = entry[1]
+        # Finished scores never change — return regardless of TTL expiry
+        if score_tuple[2] == "finished":
+            return score_tuple
+        if time.time() < entry[0]:
+            return score_tuple
+    return None, None, "scheduled", None
 
 
 def _merge_scores(matches: list[Match]) -> list[Match]:
     result = []
     for m in matches:
-        sh, sa, status = _get_cached_score(m.home_team.name, m.away_team.name)
+        sh, sa, status, winner = _get_cached_score(m.home_team.name, m.away_team.name)
         if sh is not None:
-            m = m.model_copy(update={"score_home": sh, "score_away": sa, "status": status})
+            m = m.model_copy(update={"score_home": sh, "score_away": sa, "status": status, "winner": winner})
         result.append(m)
     return result
 

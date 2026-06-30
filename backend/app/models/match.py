@@ -68,6 +68,7 @@ class Match(BaseModel):
     score_home: int | None = None
     score_away: int | None = None
     status: str = "scheduled"  # "scheduled" | "live" | "finished"
+    winner: str | None = None  # "home" | "away" | None (set when decided by penalties)
 
 
 class ProjectedScore(BaseModel):
