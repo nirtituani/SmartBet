@@ -374,23 +374,14 @@ function KnockoutSection({ isHe, lang, r32Scores, progressBar }: {
                 <KOTeamSlotAway team={f.away} />
               </>
             );
-            return (
-              <React.Fragment key={i}>
-                {f.id ? (
-                  <Link href={`/match/${f.id}`} id={`r32-${f.date}-${f.time.replace(':', '')}`} className={cardCls}>
-                    {inner}
-                  </Link>
-                ) : (
-                  <div id={`r32-${f.date}-${f.time.replace(':', '')}`} className={cardCls}>
-                    {inner}
-                  </div>
-                )}
-                {f.id && (
-                  <Link href={`/bracket#bk-r32-${f.id}`} className="explorer__bracket-link">
-                    {isHe ? '← צפה בסכמה' : 'View in bracket →'}
-                  </Link>
-                )}
-              </React.Fragment>
+            return f.id ? (
+              <Link key={i} href={`/match/${f.id}`} id={`r32-${f.date}-${f.time.replace(':', '')}`} className={cardCls}>
+                {inner}
+              </Link>
+            ) : (
+              <div key={i} id={`r32-${f.date}-${f.time.replace(':', '')}`} className={cardCls}>
+                {inner}
+              </div>
             );
           })}
         </section>
@@ -420,15 +411,21 @@ function KnockoutSection({ isHe, lang, r32Scores, progressBar }: {
                   const teams = teamsForRound[round]?.[`${f.date}-${f.time}`];
                   const homeTeam: KOTeam = teams?.home ?? { seed: 'TBD' };
                   const awayTeam: KOTeam = teams?.away ?? { seed: 'TBD' };
+                  const cardAnchor = `ko-${roundSlug}-${f.date}-${f.time.replace(':', '')}`;
                   return (
-                    <div key={i} id={`ko-${roundSlug}-${f.date}-${f.time.replace(':', '')}`} className="match-card match-card--tbd glass-card">
-                      <KOTeamSlot team={homeTeam} />
-                      <div className="match-card__center">
-                        <span className="match-card__kickoff match-card__kickoff--tbd">{toIDT(f.date, f.time)} IDT</span>
-                        <span className="match-card__meta">{isHe ? f.labelHe : f.label}</span>
+                    <React.Fragment key={i}>
+                      <div id={cardAnchor} className="match-card match-card--tbd glass-card">
+                        <KOTeamSlot team={homeTeam} />
+                        <div className="match-card__center">
+                          <span className="match-card__kickoff match-card__kickoff--tbd">{toIDT(f.date, f.time)} IDT</span>
+                          <span className="match-card__meta">{isHe ? f.labelHe : f.label}</span>
+                        </div>
+                        <KOTeamSlotAway team={awayTeam} />
                       </div>
-                      <KOTeamSlotAway team={awayTeam} />
-                    </div>
+                      <Link href={`/bracket#bk-${cardAnchor}`} className="explorer__bracket-link">
+                        {isHe ? '← צפה בסכמה' : 'View in bracket →'}
+                      </Link>
+                    </React.Fragment>
                   );
                 })}
               </section>

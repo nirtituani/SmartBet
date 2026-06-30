@@ -238,7 +238,8 @@ function RoundCol({ matches, round, lang, label, seeds, slotHrefs }: {
             ? `/match-explorer#${R32_ANCHOR[`${pair[0]}|${pair[1]}`]}`
             : slotHrefs?.[i];
           const fixtureId = pair ? SEED_PAIR_TO_ID[`${pair[0]}|${pair[1]}`] : undefined;
-          const cardId = fixtureId ? `bk-r32-${fixtureId}` : undefined;
+          const anchorFromHref = !pair && slotHrefs?.[i] ? slotHrefs[i].split('#')[1] : undefined;
+          const cardId = fixtureId ? `bk-r32-${fixtureId}` : anchorFromHref ? `bk-${anchorFromHref}` : undefined;
           return <MatchCard key={i} m={m} centerY={cy(round, i)} lang={lang} href={href} id={cardId} />;
         })}
       </div>
@@ -371,7 +372,7 @@ export default function BracketClient({ standings, thirdPlace, r32Results }: Pro
 
   useEffect(() => {
     const hash = window.location.hash.slice(1);
-    if (!hash.startsWith('bk-r32-')) return;
+    if (!hash.startsWith('bk-')) return;
     requestAnimationFrame(() => {
       const el = document.getElementById(hash);
       if (!el) return;
