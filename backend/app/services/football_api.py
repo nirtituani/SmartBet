@@ -1300,9 +1300,15 @@ _SCORE_REDIS_TTL = 120 * 24 * 3600  # 120 days — covers the full tournament
 async def _load_scores_from_redis() -> None:
     """Pre-populate in-memory score cache from Redis on startup (instant, no ESPN call)."""
     from app.core.cache import get_cached
-    # v2 adds winner field; v1 entries are 3-element tuples and are discarded on migration
-    data = await get_cached("espn_scores_v2") or {}
-    for key, (expires, score_tuple) in data.items():
+    # Load v1 first (3-tuple, no winner field) as a migration base
+    v1 = await get_cached("espn_scores_v1") or {}
+    for key, (expires, score_tuple) in v1.items():
+        # Pad to 4-tuple by appending None for winner
+        padded = tuple(score_tuple) + (None,) if len(score_tuple) == 3 else tuple(score_tuple)
+        _ESPN_SCORES_CACHE[key] = (expires, padded)
+    # v2 entries override v1 (they include winner field)
+    v2 = await get_cached("espn_scores_v2") or {}
+    for key, (expires, score_tuple) in v2.items():
         _ESPN_SCORES_CACHE[key] = (expires, tuple(score_tuple))
 
 

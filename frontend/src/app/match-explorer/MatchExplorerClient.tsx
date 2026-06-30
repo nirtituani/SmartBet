@@ -373,10 +373,16 @@ export default function MatchExplorerClient({ matches: initialMatches }: { match
   const tr = t[lang].matchExplorer;
   const [matches, setMatches] = useState<Match[]>(initialMatches);
   const upcomingRef = useRef<HTMLDivElement>(null);
+  const knockoutRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchUpcomingMatches().then(setMatches).catch(() => {});
   }, []);
+
+  // Only group stage matches in the main list — KO matches are shown in KnockoutSection
+  const groupStageMatches = matches.filter(m => m.group.startsWith('Group '));
+  const finishedMatches = groupStageMatches.filter(m => m.status === 'finished');
+  const upcomingMatches = groupStageMatches.filter(m => m.status !== 'finished');
 
   useEffect(() => {
     const hash = window.location.hash.slice(1);
@@ -386,16 +392,15 @@ export default function MatchExplorerClient({ matches: initialMatches }: { match
         const y = el.getBoundingClientRect().top + window.scrollY - 80;
         window.scrollTo({ top: y, behavior: 'smooth' });
       }
+    } else if (upcomingMatches.length === 0 && knockoutRef.current) {
+      // Group stage is over — jump straight to the knockout section
+      const y = knockoutRef.current.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({ top: y, behavior: 'smooth' });
     } else if (upcomingRef.current) {
       const y = upcomingRef.current.getBoundingClientRect().top + window.scrollY - 80;
       window.scrollTo({ top: y, behavior: 'smooth' });
     }
-  }, []);
-
-  // Only group stage matches in the main list — KO matches are shown in KnockoutSection
-  const groupStageMatches = matches.filter(m => m.group.startsWith('Group '));
-  const finishedMatches = groupStageMatches.filter(m => m.status === 'finished');
-  const upcomingMatches = groupStageMatches.filter(m => m.status !== 'finished');
+  }, [upcomingMatches.length]);
 
   const r32Scores: Record<number, Match> = {};
   for (const m of matches) {
@@ -438,7 +443,9 @@ export default function MatchExplorerClient({ matches: initialMatches }: { match
 
       {futureDates.map(d => renderDateSection(d, groupedFuture))}
 
-      <KnockoutSection isHe={lang === 'he'} lang={lang} r32Scores={r32Scores} />
+      <div ref={knockoutRef}>
+        <KnockoutSection isHe={lang === 'he'} lang={lang} r32Scores={r32Scores} />
+      </div>
     </main>
   );
 }

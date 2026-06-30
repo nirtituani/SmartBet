@@ -5,7 +5,7 @@ from datetime import date, datetime, timezone
 from app.core.budget import COST_PER_MATCH, DAILY_LIMIT_USD, is_over_limit, record_spend
 from app.core.cache import get_cached, set_cached
 from app.services.ai_service import get_prediction
-from app.services.football_api import get_match_detail, get_upcoming_matches, refresh_scores_today
+from app.services.football_api import get_match_detail, get_upcoming_matches, refresh_scores_today, _load_scores_from_redis
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -168,6 +168,8 @@ async def _scores_loop() -> None:
 
 
 async def warm_cache() -> None:
+    # Load finished scores from Redis before anything else — avoids ESPN re-fetch for old matches
+    await _load_scores_from_redis()
     # Refresh scores from ESPN to pick up any new results
     await refresh_scores_today()
     # Run daily_refresh on startup to update stale predictions (skips any < 20h old).
