@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -194,7 +195,9 @@ const SF_FROM_QF: [number, number][] = [
   [1, 3], // 07-15 19:00 — QF[1] winner vs QF[3] winner (right SF)
 ];
 
-function KnockoutSection({ isHe, lang, r32Scores }: { isHe: boolean; lang: string; r32Scores: Record<number, Match> }) {
+function KnockoutSection({ isHe, lang, r32Scores, progressBar }: {
+  isHe: boolean; lang: string; r32Scores: Record<number, Match>; progressBar?: React.ReactNode;
+}) {
   // Derive R32 winners from live scores
   const r32ById: Record<number, KOFixture> = {};
   for (const f of R32) { if (f.id) r32ById[f.id] = f; }
@@ -251,6 +254,8 @@ function KnockoutSection({ isHe, lang, r32Scores }: { isHe: boolean; lang: strin
     return acc;
   }, {});
   const r32Dates = Object.keys(byDate).sort();
+  // Today's date in IDT (same timezone used for grouping R32 fixture dates)
+  const todayIdt = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
 
   const fmtDate = (d: string) =>
     new Date(d + 'T12:00:00').toLocaleDateString(isHe ? 'he-IL' : 'en-US', {
@@ -277,9 +282,56 @@ function KnockoutSection({ isHe, lang, r32Scores }: { isHe: boolean; lang: strin
         <span className="knockout-section__title">{isHe ? 'שלבי הנוקאאוט' : 'Knockout Stage'}</span>
       </div>
 
-      {/* Round of 32 — exact dates and matchups */}
+      {/* Round of 32 — split into past and upcoming, with progress bar between */}
       <div className="ko-round-label">{isHe ? 'שלב 32' : 'Round of 32'}</div>
-      {r32Dates.map(date => (
+      {r32Dates.filter(d => d < todayIdt).map(date => (
+        <section key={date} className="explorer__date-section">
+          <div className="explorer__date-header">
+            <span className={`explorer__date-label${isHe ? ' explorer__date-label--hebrew' : ''}`} dir={isHe ? 'rtl' : undefined}>
+              {fmtDate(date)}
+            </span>
+          </div>
+          {byDate[date].map((f, i) => {
+            const live = f.id ? r32Scores[f.id] : undefined;
+            const finished = live?.status === 'finished';
+            const isLive = live?.status === 'live';
+            const hasScore = live && live.score_home !== null && live.score_away !== null;
+            const cardCls = `match-card glass-card${finished ? ' match-card--finished' : isLive ? ' match-card--live' : ' match-card--tbd'}`;
+            const inner = (
+              <>
+                <KOTeamSlot team={f.home} />
+                <div className="match-card__center">
+                  {hasScore ? (
+                    <span className={`match-card__score${isLive ? ' match-card__score--live' : ''}`}>
+                      {live!.score_home} – {live!.score_away}
+                    </span>
+                  ) : (
+                    <span className="match-card__kickoff match-card__kickoff--tbd">{toIDT(f.date, f.time)} IDT</span>
+                  )}
+                  <span className="match-card__meta">
+                    {isLive && <span className="match-card__live-dot" />}
+                    {isHe ? 'שלב 32' : 'Round of 32'}
+                  </span>
+                </div>
+                <KOTeamSlotAway team={f.away} />
+              </>
+            );
+            return f.id ? (
+              <Link key={i} href={`/match/${f.id}`} id={`r32-${f.date}-${f.time.replace(':', '')}`} className={cardCls}>
+                {inner}
+              </Link>
+            ) : (
+              <div key={i} id={`r32-${f.date}-${f.time.replace(':', '')}`} className={cardCls}>
+                {inner}
+              </div>
+            );
+          })}
+        </section>
+      ))}
+
+      {progressBar}
+
+      {r32Dates.filter(d => d >= todayIdt).map(date => (
         <section key={date} className="explorer__date-section">
           <div className="explorer__date-header">
             <span className={`explorer__date-label${isHe ? ' explorer__date-label--hebrew' : ''}`} dir={isHe ? 'rtl' : undefined}>
@@ -440,14 +492,27 @@ export default function MatchExplorerClient({ matches: initialMatches }: { match
 
       {pastDates.map(d => renderDateSection(d, groupedPast))}
 
-      <div ref={upcomingRef}>
-        <TournamentProgress matches={matches} lang={lang} />
-      </div>
+      {futureDates.length > 0 && (
+        <div ref={upcomingRef}>
+          <TournamentProgress matches={matches} lang={lang} />
+        </div>
+      )}
 
       {futureDates.map(d => renderDateSection(d, groupedFuture))}
 
       <div ref={knockoutRef}>
-        <KnockoutSection isHe={lang === 'he'} lang={lang} r32Scores={r32Scores} />
+        <KnockoutSection
+          isHe={lang === 'he'}
+          lang={lang}
+          r32Scores={r32Scores}
+          progressBar={
+            futureDates.length === 0 ? (
+              <div ref={upcomingRef}>
+                <TournamentProgress matches={matches} lang={lang} />
+              </div>
+            ) : undefined
+          }
+        />
       </div>
     </main>
   );
