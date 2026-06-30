@@ -334,11 +334,6 @@ function KnockoutSection({ isHe, lang, r32Scores, progressBar }: {
                     {inner}
                   </div>
                 )}
-                {f.id && (
-                  <Link href={`/bracket#bk-r32-${f.id}`} className="explorer__bracket-link">
-                    {isHe ? '← צפה בסכמה' : 'View in bracket →'}
-                  </Link>
-                )}
               </React.Fragment>
             );
           })}
