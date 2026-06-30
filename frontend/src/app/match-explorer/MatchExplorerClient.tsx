@@ -413,19 +413,14 @@ function KnockoutSection({ isHe, lang, r32Scores, progressBar }: {
                   const awayTeam: KOTeam = teams?.away ?? { seed: 'TBD' };
                   const cardAnchor = `ko-${roundSlug}-${f.date}-${f.time.replace(':', '')}`;
                   return (
-                    <React.Fragment key={i}>
-                      <div id={cardAnchor} className="match-card match-card--tbd glass-card">
-                        <KOTeamSlot team={homeTeam} />
-                        <div className="match-card__center">
-                          <span className="match-card__kickoff match-card__kickoff--tbd">{toIDT(f.date, f.time)} IDT</span>
-                          <span className="match-card__meta">{isHe ? f.labelHe : f.label}</span>
-                        </div>
-                        <KOTeamSlotAway team={awayTeam} />
+                    <Link key={i} href={`/bracket#bk-${cardAnchor}`} id={cardAnchor} className="match-card match-card--tbd glass-card">
+                      <KOTeamSlot team={homeTeam} />
+                      <div className="match-card__center">
+                        <span className="match-card__kickoff match-card__kickoff--tbd">{toIDT(f.date, f.time)} IDT</span>
+                        <span className="match-card__meta">{isHe ? f.labelHe : f.label}</span>
                       </div>
-                      <Link href={`/bracket#bk-${cardAnchor}`} className="explorer__bracket-link">
-                        {isHe ? '← צפה בסכמה' : 'View in bracket →'}
-                      </Link>
-                    </React.Fragment>
+                      <KOTeamSlotAway team={awayTeam} />
+                    </Link>
                   );
                 })}
               </section>
