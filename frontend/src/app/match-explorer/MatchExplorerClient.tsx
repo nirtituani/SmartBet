@@ -392,15 +392,18 @@ export default function MatchExplorerClient({ matches: initialMatches }: { match
         const y = el.getBoundingClientRect().top + window.scrollY - 80;
         window.scrollTo({ top: y, behavior: 'smooth' });
       }
-    } else if (upcomingMatches.length === 0 && knockoutRef.current) {
-      // Group stage is over — jump straight to the knockout section
+      return;
+    }
+    // R32 started June 28 — once knockout is underway, scroll there instead of group stage
+    const knockoutStarted = new Date() >= new Date('2026-06-28T00:00:00Z');
+    if (knockoutStarted && knockoutRef.current) {
       const y = knockoutRef.current.getBoundingClientRect().top + window.scrollY - 80;
       window.scrollTo({ top: y, behavior: 'smooth' });
     } else if (upcomingRef.current) {
       const y = upcomingRef.current.getBoundingClientRect().top + window.scrollY - 80;
       window.scrollTo({ top: y, behavior: 'smooth' });
     }
-  }, [upcomingMatches.length]);
+  }, []);
 
   const r32Scores: Record<number, Match> = {};
   for (const m of matches) {
