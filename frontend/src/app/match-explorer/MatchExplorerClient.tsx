@@ -247,18 +247,22 @@ function KnockoutSection({ isHe, lang, r32Scores, progressBar }: {
     'Semi Final':   sfTeamsMap,
   };
 
-  // Group R32 fixtures by IDT date (some UTC times cross midnight into the next IDT day)
-  const byDate = R32.reduce<Record<string, KOFixture[]>>((acc, f) => {
-    const idtDate = toIDTDate(f.date, f.time);
-    (acc[idtDate] ??= []).push(f);
-    return acc;
-  }, {});
-  const r32Dates = Object.keys(byDate).sort();
-  // A date group goes before the progress bar only if every match in it is finished
-  const r32PastDates = r32Dates.filter(d =>
-    byDate[d].every(f => f.id ? r32Scores[f.id]?.status === 'finished' : false)
-  );
-  const r32UpcomingDates = r32Dates.filter(d => !r32PastDates.includes(d));
+  // Split R32 fixtures by status first, then group each set by IDT date.
+  // This handles fixtures that share an IDT date but have different statuses
+  // (e.g. France/Sweden at 21:00 UTC = midnight IDT, grouped with next-day matches).
+  const r32Finished  = R32.filter(f => f.id && r32Scores[f.id]?.status === 'finished');
+  const r32Upcoming  = R32.filter(f => !f.id || r32Scores[f.id]?.status !== 'finished');
+
+  const groupByIdt = (fixtures: KOFixture[]) =>
+    fixtures.reduce<Record<string, KOFixture[]>>((acc, f) => {
+      (acc[toIDTDate(f.date, f.time)] ??= []).push(f);
+      return acc;
+    }, {});
+
+  const byDateFinished = groupByIdt(r32Finished);
+  const byDateUpcoming = groupByIdt(r32Upcoming);
+  const r32FinishedDates = Object.keys(byDateFinished).sort();
+  const r32UpcomingDates = Object.keys(byDateUpcoming).sort();
 
   const fmtDate = (d: string) =>
     new Date(d + 'T12:00:00').toLocaleDateString(isHe ? 'he-IL' : 'en-US', {
@@ -287,14 +291,14 @@ function KnockoutSection({ isHe, lang, r32Scores, progressBar }: {
 
       {/* Round of 32 — split into past and upcoming, with progress bar between */}
       <div className="ko-round-label">{isHe ? 'שלב 32' : 'Round of 32'}</div>
-      {r32PastDates.map(date => (
+      {r32FinishedDates.map(date => (
         <section key={date} className="explorer__date-section">
           <div className="explorer__date-header">
             <span className={`explorer__date-label${isHe ? ' explorer__date-label--hebrew' : ''}`} dir={isHe ? 'rtl' : undefined}>
               {fmtDate(date)}
             </span>
           </div>
-          {byDate[date].map((f, i) => {
+          {byDateFinished[date].map((f, i) => {
             const live = f.id ? r32Scores[f.id] : undefined;
             const finished = live?.status === 'finished';
             const isLive = live?.status === 'live';
@@ -341,7 +345,7 @@ function KnockoutSection({ isHe, lang, r32Scores, progressBar }: {
               {fmtDate(date)}
             </span>
           </div>
-          {byDate[date].map((f, i) => {
+          {byDateUpcoming[date].map((f, i) => {
             const live = f.id ? r32Scores[f.id] : undefined;
             const finished = live?.status === 'finished';
             const isLive = live?.status === 'live';
