@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { translateTeam } from '@/lib/i18n';
 import type { Lang } from '@/lib/i18n';
@@ -87,6 +88,14 @@ const R32_ANCHOR: Record<string, string> = {
   '2D|2G':     'r32-2026-07-03-1800',
   '1J|2H':     'r32-2026-07-03-2200',
   '1K|3DEIJL': 'r32-2026-07-04-0130',
+};
+
+// Maps "topSeed|bottomSeed" → fixture ID — used to assign ids to R32 bracket cards
+const SEED_PAIR_TO_ID: Record<string, number> = {
+  '1E|3ABCDF': 75, '1I|3CDFGH': 78, '2A|2B': 73,     '1F|2C': 76,
+  '2K|2L':     84, '1H|2J':     83, '1D|3BEFIJ': 82, '1G|3AEHIJ': 81,
+  '1C|2F':     74, '2E|2I':     77, '1A|3CEFHI': 79, '1L|3EHIJK': 80,
+  '1J|2H':     87, '2D|2G':     86, '1B|3EFGIJ': 85, '1K|3DEIJL': 88,
 };
 
 // Per-slot hrefs for later rounds.
@@ -194,7 +203,7 @@ function TeamRow({ s, score, isWinner, hasResult, lang }: {
   );
 }
 
-function MatchCard({ m, centerY, lang, href }: { m: BracketMatch; centerY: number; lang: Lang; href?: string }) {
+function MatchCard({ m, centerY, lang, href, id }: { m: BracketMatch; centerY: number; lang: Lang; href?: string; id?: string }) {
   const style = { top: centerY - CARD_H / 2, width: CARD_W };
   const r = m.result;
   const hasResult = r?.status === 'finished' || r?.status === 'live';
@@ -210,9 +219,9 @@ function MatchCard({ m, centerY, lang, href }: { m: BracketMatch; centerY: numbe
   );
   const extraCls = live ? ' bk-card--live' : '';
   if (href) {
-    return <Link href={href} className={`bk-card bk-card--link${extraCls}`} style={style}>{inner}</Link>;
+    return <Link id={id} href={href} className={`bk-card bk-card--link${extraCls}`} style={style}>{inner}</Link>;
   }
-  return <div className={`bk-card${extraCls}`} style={style}>{inner}</div>;
+  return <div id={id} className={`bk-card${extraCls}`} style={style}>{inner}</div>;
 }
 
 function RoundCol({ matches, round, lang, label, seeds, slotHrefs }: {
@@ -228,7 +237,9 @@ function RoundCol({ matches, round, lang, label, seeds, slotHrefs }: {
           const href = pair
             ? `/match-explorer#${R32_ANCHOR[`${pair[0]}|${pair[1]}`]}`
             : slotHrefs?.[i];
-          return <MatchCard key={i} m={m} centerY={cy(round, i)} lang={lang} href={href} />;
+          const fixtureId = pair ? SEED_PAIR_TO_ID[`${pair[0]}|${pair[1]}`] : undefined;
+          const cardId = fixtureId ? `bk-r32-${fixtureId}` : undefined;
+          return <MatchCard key={i} m={m} centerY={cy(round, i)} lang={lang} href={href} id={cardId} />;
         })}
       </div>
     </div>
@@ -357,6 +368,26 @@ function ThirdPlaceTable({ teams, lang }: { teams: ThirdPlaceTeam[]; lang: Lang 
 export default function BracketClient({ standings, thirdPlace, r32Results }: Props) {
   const { lang } = useLanguage();
   const l = lang as Lang;
+
+  useEffect(() => {
+    const hash = window.location.hash.slice(1);
+    if (!hash.startsWith('bk-r32-')) return;
+    requestAnimationFrame(() => {
+      const el = document.getElementById(hash);
+      if (!el) return;
+      el.classList.add('bk-card--highlight');
+      setTimeout(() => el.classList.remove('bk-card--highlight'), 2000);
+      const scrollContainer = el.closest('.bracket-scroll') as HTMLElement | null;
+      if (scrollContainer) {
+        const containerRect = scrollContainer.getBoundingClientRect();
+        const elRect = el.getBoundingClientRect();
+        const targetLeft = scrollContainer.scrollLeft + elRect.left - containerRect.left - containerRect.width / 2 + elRect.width / 2;
+        scrollContainer.scrollLeft = Math.max(0, targetLeft);
+      }
+      const y = el.getBoundingClientRect().top + window.scrollY - 120;
+      window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+    });
+  }, []);
 
   const leftR32 = LEFT_SEEDS.map(([a, b]) => {
     const top = makeSlot(a, standings);

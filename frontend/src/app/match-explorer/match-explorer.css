@@ -54,6 +54,25 @@
   text-transform: none;
 }
 
+.explorer__bracket-link {
+  display: block;
+  text-align: right;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--neon-blue);
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+  margin-top: -4px;
+  margin-bottom: 10px;
+  padding-right: 4px;
+  transition: opacity 0.15s;
+}
+
+.explorer__bracket-link:hover {
+  opacity: 1;
+}
+
 .match-card {
   display: flex;
   align-items: center;

@@ -323,14 +323,23 @@ function KnockoutSection({ isHe, lang, r32Scores, progressBar }: {
                 <KOTeamSlotAway team={f.away} />
               </>
             );
-            return f.id ? (
-              <Link key={i} href={`/match/${f.id}`} id={`r32-${f.date}-${f.time.replace(':', '')}`} className={cardCls}>
-                {inner}
-              </Link>
-            ) : (
-              <div key={i} id={`r32-${f.date}-${f.time.replace(':', '')}`} className={cardCls}>
-                {inner}
-              </div>
+            return (
+              <React.Fragment key={i}>
+                {f.id ? (
+                  <Link href={`/match/${f.id}`} id={`r32-${f.date}-${f.time.replace(':', '')}`} className={cardCls}>
+                    {inner}
+                  </Link>
+                ) : (
+                  <div id={`r32-${f.date}-${f.time.replace(':', '')}`} className={cardCls}>
+                    {inner}
+                  </div>
+                )}
+                {f.id && (
+                  <Link href={`/bracket#bk-r32-${f.id}`} className="explorer__bracket-link">
+                    {isHe ? '← צפה בסכמה' : 'View in bracket →'}
+                  </Link>
+                )}
+              </React.Fragment>
             );
           })}
         </section>
@@ -370,14 +379,23 @@ function KnockoutSection({ isHe, lang, r32Scores, progressBar }: {
                 <KOTeamSlotAway team={f.away} />
               </>
             );
-            return f.id ? (
-              <Link key={i} href={`/match/${f.id}`} id={`r32-${f.date}-${f.time.replace(':', '')}`} className={cardCls}>
-                {inner}
-              </Link>
-            ) : (
-              <div key={i} id={`r32-${f.date}-${f.time.replace(':', '')}`} className={cardCls}>
-                {inner}
-              </div>
+            return (
+              <React.Fragment key={i}>
+                {f.id ? (
+                  <Link href={`/match/${f.id}`} id={`r32-${f.date}-${f.time.replace(':', '')}`} className={cardCls}>
+                    {inner}
+                  </Link>
+                ) : (
+                  <div id={`r32-${f.date}-${f.time.replace(':', '')}`} className={cardCls}>
+                    {inner}
+                  </div>
+                )}
+                {f.id && (
+                  <Link href={`/bracket#bk-r32-${f.id}`} className="explorer__bracket-link">
+                    {isHe ? '← צפה בסכמה' : 'View in bracket →'}
+                  </Link>
+                )}
+              </React.Fragment>
             );
           })}
         </section>
