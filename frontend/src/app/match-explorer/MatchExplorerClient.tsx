@@ -254,8 +254,11 @@ function KnockoutSection({ isHe, lang, r32Scores, progressBar }: {
     return acc;
   }, {});
   const r32Dates = Object.keys(byDate).sort();
-  // Today's date in IDT (same timezone used for grouping R32 fixture dates)
-  const todayIdt = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
+  // A date group goes before the progress bar only if every match in it is finished
+  const r32PastDates = r32Dates.filter(d =>
+    byDate[d].every(f => f.id ? r32Scores[f.id]?.status === 'finished' : false)
+  );
+  const r32UpcomingDates = r32Dates.filter(d => !r32PastDates.includes(d));
 
   const fmtDate = (d: string) =>
     new Date(d + 'T12:00:00').toLocaleDateString(isHe ? 'he-IL' : 'en-US', {
@@ -284,7 +287,7 @@ function KnockoutSection({ isHe, lang, r32Scores, progressBar }: {
 
       {/* Round of 32 — split into past and upcoming, with progress bar between */}
       <div className="ko-round-label">{isHe ? 'שלב 32' : 'Round of 32'}</div>
-      {r32Dates.filter(d => d < todayIdt).map(date => (
+      {r32PastDates.map(date => (
         <section key={date} className="explorer__date-section">
           <div className="explorer__date-header">
             <span className={`explorer__date-label${isHe ? ' explorer__date-label--hebrew' : ''}`} dir={isHe ? 'rtl' : undefined}>
@@ -331,7 +334,7 @@ function KnockoutSection({ isHe, lang, r32Scores, progressBar }: {
 
       {progressBar}
 
-      {r32Dates.filter(d => d >= todayIdt).map(date => (
+      {r32UpcomingDates.map(date => (
         <section key={date} className="explorer__date-section">
           <div className="explorer__date-header">
             <span className={`explorer__date-label${isHe ? ' explorer__date-label--hebrew' : ''}`} dir={isHe ? 'rtl' : undefined}>
