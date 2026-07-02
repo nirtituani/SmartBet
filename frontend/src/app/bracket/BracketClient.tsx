@@ -104,11 +104,11 @@ const SEED_PAIR_TO_ID: Record<string, number> = {
 // FIFA schedules knockout rounds alternating left/right bracket halves each match.
 // Matches 1,3,5,7 → left bracket; matches 2,4,6,8 → right bracket.
 const LEFT_SLOT_HREFS: Record<number, string[]> = {
-  1: [ // Round of 16 — matches 1,3,5,7 (odd) go to left bracket
+  1: [ // Round of 16 — left bracket slots: L0=Germany/France, L1=Canada/Morocco, L2=Portugal/Spain, L3=USA/Belgium
+    '/match-explorer#ko-round-of-16-2026-07-04-2100',
     '/match-explorer#ko-round-of-16-2026-07-04-1700',
-    '/match-explorer#ko-round-of-16-2026-07-05-2000',
     '/match-explorer#ko-round-of-16-2026-07-06-1900',
-    '/match-explorer#ko-round-of-16-2026-07-07-1600',
+    '/match-explorer#ko-round-of-16-2026-07-07-0000',
   ],
   2: [ // Quarter Finals — matches 1,3 go to left bracket
     '/match-explorer#ko-quarter-final-2026-07-09-2000',
@@ -120,10 +120,10 @@ const LEFT_SLOT_HREFS: Record<number, string[]> = {
 };
 
 const RIGHT_SLOT_HREFS: Record<number, string[]> = {
-  1: [ // Round of 16 — matches 2,4,6,8 (even) go to right bracket
-    '/match-explorer#ko-round-of-16-2026-07-04-2100',
+  1: [ // Round of 16 — right bracket slots: R0=Brazil/Norway, R1=Mexico/England, R2=Argentina, R3=Switzerland/Colombia
+    '/match-explorer#ko-round-of-16-2026-07-05-2000',
     '/match-explorer#ko-round-of-16-2026-07-06-0000',
-    '/match-explorer#ko-round-of-16-2026-07-07-0000',
+    '/match-explorer#ko-round-of-16-2026-07-07-1600',
     '/match-explorer#ko-round-of-16-2026-07-07-2000',
   ],
   2: [ // Quarter Finals — matches 2,4 go to right bracket

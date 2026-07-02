@@ -169,24 +169,23 @@ function KOTeamSlotAway({ team }: { team: KOTeam }) {
 }
 
 // R16 matchups in LATER_FIXTURES order: each entry is [homeR32Id, awayR32Id]
-// Mirrors the bracket structure (LEFT_SEEDS/RIGHT_SEEDS pairs feed alternating R16 slots)
 const R16_PAIRINGS: [number, number][] = [
-  [75, 78], // 07-04 17:00 — winner Germany/Paraguay vs winner France/Sweden
-  [74, 77], // 07-04 21:00 — winner Brazil/Japan vs winner Ivory Coast/Norway
-  [73, 76], // 07-05 20:00 — winner S.Africa/Canada vs winner Netherlands/Morocco
+  [73, 76], // 07-04 17:00 — winner Canada/SA vs winner Netherlands/Morocco → Canada vs Morocco
+  [75, 78], // 07-04 21:00 — winner Germany/Paraguay vs winner France/Sweden → Germany vs France
+  [74, 77], // 07-05 20:00 — winner Brazil/Japan vs winner Ivory Coast/Norway
   [79, 80], // 07-06 00:00 — winner Mexico/Ecuador vs winner England/DR Congo
   [84, 83], // 07-06 19:00 — winner Portugal/Croatia vs winner Spain/Austria
-  [87, 86], // 07-07 00:00 — winner Argentina/Cape Verde vs winner Australia/Egypt
-  [82, 81], // 07-07 16:00 — winner USA/Bosnia vs winner Belgium/Senegal
+  [82, 81], // 07-07 00:00 — winner USA/Bosnia vs winner Belgium/Senegal → USA vs Belgium
+  [87, 86], // 07-07 16:00 — winner Argentina/Cape Verde vs winner Australia/Egypt
   [85, 88], // 07-07 20:00 — winner Switzerland/Algeria vs winner Colombia/Ghana
 ];
 
 // QF matchups in LATER_FIXTURES order: each entry is [homeR16Idx, awayR16Idx] (index into R16_PAIRINGS)
 const QF_FROM_R16: [number, number][] = [
-  [0, 2], // 07-09 20:00 — R16[0] winner vs R16[2] winner (left bracket)
-  [1, 3], // 07-10 19:00 — R16[1] winner vs R16[3] winner (right bracket)
-  [4, 6], // 07-11 21:00 — R16[4] winner vs R16[6] winner (left bracket)
-  [5, 7], // 07-12 01:00 — R16[5] winner vs R16[7] winner (right bracket)
+  [1, 0], // 07-09 20:00 — Germany/France winner vs Canada/Morocco winner (left bracket)
+  [2, 3], // 07-10 19:00 — Brazil/Norway winner vs Mexico/England winner (right bracket)
+  [4, 5], // 07-11 21:00 — Portugal/Spain winner vs USA/Belgium winner (left bracket)
+  [6, 7], // 07-12 01:00 — Argentina winner vs Switzerland/Colombia winner (right bracket)
 ];
 
 // SF matchups: each entry is [homeQFIdx, awayQFIdx]
