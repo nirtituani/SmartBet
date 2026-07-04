@@ -194,6 +194,18 @@ const SF_FROM_QF: [number, number][] = [
   [1, 3], // 07-15 19:00 — QF[1] winner vs QF[3] winner (right SF)
 ];
 
+// Confirmed R16 teams in R16_PAIRINGS order (all R32 results are in)
+const R16_CONFIRMED: { home: KOTeam; away: KOTeam }[] = [
+  { home: { seed: '2A', name: 'Canada',      flag: '🇨🇦' }, away: { seed: '2C',  name: 'Morocco',     flag: '🇲🇦' } },
+  { home: { seed: '3rd', name: 'Paraguay',   flag: '🇵🇾' }, away: { seed: '1I',  name: 'France',      flag: '🇫🇷' } },
+  { home: { seed: '1C', name: 'Brazil',      flag: '🇧🇷' }, away: { seed: '2I',  name: 'Norway',      flag: '🇳🇴' } },
+  { home: { seed: '1A', name: 'Mexico',      flag: '🇲🇽' }, away: { seed: '1L',  name: 'England',     flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' } },
+  { home: { seed: '2K', name: 'Portugal',    flag: '🇵🇹' }, away: { seed: '1H',  name: 'Spain',       flag: '🇪🇸' } },
+  { home: { seed: '1D', name: 'USA',         flag: '🇺🇸' }, away: { seed: '1G',  name: 'Belgium',     flag: '🇧🇪' } },
+  { home: { seed: '1J', name: 'Argentina',   flag: '🇦🇷' }, away: { seed: '2D',  name: 'Egypt',       flag: '🇪🇬' } },
+  { home: { seed: '1B', name: 'Switzerland', flag: '🇨🇭' }, away: { seed: '1K',  name: 'Colombia',    flag: '🇨🇴' } },
+];
+
 function KnockoutSection({ isHe, lang, r32Scores, progressBar }: {
   isHe: boolean; lang: string; r32Scores: Record<number, Match>; progressBar?: React.ReactNode;
 }) {
@@ -213,12 +225,13 @@ function KnockoutSection({ isHe, lang, r32Scores, progressBar }: {
     else r32Winners[id] = null;
   }
 
-  // Build R16 team pairs keyed by "date-time" matching LATER_FIXTURES
+  // Build R16 team pairs — use confirmed teams now that all R32 results are in
   const r16Fixtures = LATER_FIXTURES.filter(f => f.label === 'Round of 16');
   const r16TeamsMap: Record<string, { home: KOTeam | null; away: KOTeam | null }> = {};
   R16_PAIRINGS.forEach(([homeId, awayId], i) => {
     const f = r16Fixtures[i];
-    if (f) r16TeamsMap[`${f.date}-${f.time}`] = { home: r32Winners[homeId] ?? null, away: r32Winners[awayId] ?? null };
+    const confirmed = R16_CONFIRMED[i];
+    if (f) r16TeamsMap[`${f.date}-${f.time}`] = confirmed ?? { home: r32Winners[homeId] ?? null, away: r32Winners[awayId] ?? null };
   });
 
   // Build QF team pairs — derive from R16 winners (will populate once R16 results exist)
