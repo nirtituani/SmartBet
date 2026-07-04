@@ -78,30 +78,30 @@ const R32: KOFixture[] = [
   { id: 88, date: '2026-07-04', time: '01:30', round: 'Round of 32', home: { seed: '1K', name: 'Colombia',            flag: '🇨🇴' }, away: { seed: '3rd E/I/L', name: 'Ghana',               flag: '🇬🇭' } },
 ];
 
-type LaterFixture = { date: string; time: string; label: string; labelHe: string };
+type LaterFixture = { id: number; date: string; time: string; label: string; labelHe: string };
 
 const LATER_FIXTURES: LaterFixture[] = [
   // Round of 16
-  { date: '2026-07-04', time: '17:00', label: 'Round of 16', labelHe: 'שמינית גמר' },
-  { date: '2026-07-04', time: '21:00', label: 'Round of 16', labelHe: 'שמינית גמר' },
-  { date: '2026-07-05', time: '20:00', label: 'Round of 16', labelHe: 'שמינית גמר' },
-  { date: '2026-07-06', time: '00:00', label: 'Round of 16', labelHe: 'שמינית גמר' },
-  { date: '2026-07-06', time: '19:00', label: 'Round of 16', labelHe: 'שמינית גמר' },
-  { date: '2026-07-07', time: '00:00', label: 'Round of 16', labelHe: 'שמינית גמר' },
-  { date: '2026-07-07', time: '16:00', label: 'Round of 16', labelHe: 'שמינית גמר' },
-  { date: '2026-07-07', time: '20:00', label: 'Round of 16', labelHe: 'שמינית גמר' },
+  { id: 89,  date: '2026-07-04', time: '17:00', label: 'Round of 16', labelHe: 'שמינית גמר' },
+  { id: 90,  date: '2026-07-04', time: '21:00', label: 'Round of 16', labelHe: 'שמינית גמר' },
+  { id: 91,  date: '2026-07-05', time: '20:00', label: 'Round of 16', labelHe: 'שמינית גמר' },
+  { id: 92,  date: '2026-07-06', time: '00:00', label: 'Round of 16', labelHe: 'שמינית גמר' },
+  { id: 93,  date: '2026-07-06', time: '19:00', label: 'Round of 16', labelHe: 'שמינית גמר' },
+  { id: 94,  date: '2026-07-07', time: '00:00', label: 'Round of 16', labelHe: 'שמינית גמר' },
+  { id: 95,  date: '2026-07-07', time: '16:00', label: 'Round of 16', labelHe: 'שמינית גמר' },
+  { id: 96,  date: '2026-07-07', time: '20:00', label: 'Round of 16', labelHe: 'שמינית גמר' },
   // Quarter Finals
-  { date: '2026-07-09', time: '20:00', label: 'Quarter Final', labelHe: 'רבע גמר' },
-  { date: '2026-07-10', time: '19:00', label: 'Quarter Final', labelHe: 'רבע גמר' },
-  { date: '2026-07-11', time: '21:00', label: 'Quarter Final', labelHe: 'רבע גמר' },
-  { date: '2026-07-12', time: '01:00', label: 'Quarter Final', labelHe: 'רבע גמר' },
+  { id: 97,  date: '2026-07-09', time: '20:00', label: 'Quarter Final', labelHe: 'רבע גמר' },
+  { id: 98,  date: '2026-07-10', time: '19:00', label: 'Quarter Final', labelHe: 'רבע גמר' },
+  { id: 99,  date: '2026-07-11', time: '21:00', label: 'Quarter Final', labelHe: 'רבע גמר' },
+  { id: 100, date: '2026-07-12', time: '01:00', label: 'Quarter Final', labelHe: 'רבע גמר' },
   // Semi Finals
-  { date: '2026-07-14', time: '19:00', label: 'Semi Final', labelHe: 'חצי גמר' },
-  { date: '2026-07-15', time: '19:00', label: 'Semi Final', labelHe: 'חצי גמר' },
+  { id: 101, date: '2026-07-14', time: '19:00', label: 'Semi Final', labelHe: 'חצי גמר' },
+  { id: 102, date: '2026-07-15', time: '19:00', label: 'Semi Final', labelHe: 'חצי גמר' },
   // 3rd Place
-  { date: '2026-07-18', time: '21:00', label: '3rd Place', labelHe: 'מקום שלישי' },
+  { id: 103, date: '2026-07-18', time: '21:00', label: '3rd Place', labelHe: 'מקום שלישי' },
   // Final
-  { date: '2026-07-19', time: '19:00', label: 'Final', labelHe: 'גמר' },
+  { id: 104, date: '2026-07-19', time: '19:00', label: 'Final', labelHe: 'גמר' },
 ];
 
 function TournamentProgress({ matches, lang }: { matches: Match[]; lang: string }) {
@@ -425,7 +425,7 @@ function KnockoutSection({ isHe, lang, r32Scores, progressBar }: {
                   const awayTeam: KOTeam = teams?.away ?? { seed: 'TBD' };
                   const cardAnchor = `ko-${roundSlug}-${f.date}-${f.time.replace(':', '')}`;
                   return (
-                    <Link key={i} href={`/bracket#bk-${cardAnchor}`} id={cardAnchor} className="match-card match-card--tbd glass-card">
+                    <Link key={i} href={`/match/${f.id}`} id={cardAnchor} className="match-card match-card--tbd glass-card">
                       <KOTeamSlot team={homeTeam} />
                       <div className="match-card__center">
                         <span className="match-card__kickoff match-card__kickoff--tbd">{toIDT(f.date, f.time)} IDT</span>

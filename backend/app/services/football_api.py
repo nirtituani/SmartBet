@@ -157,6 +157,26 @@ _WC26_FIXTURES: list[dict] = [
     {"id": 86, "home": "Australia",           "away": "Egypt",                "date": "2026-07-03", "time": "14:00 ET", "group": "Round of 32", "venue": "Vancouver"},
     {"id": 87, "home": "Argentina",           "away": "Cape Verde",           "date": "2026-07-03", "time": "18:00 ET", "group": "Round of 32", "venue": "Kansas City"},
     {"id": 88, "home": "Colombia",            "away": "Ghana",                "date": "2026-07-03", "time": "21:30 ET", "group": "Round of 32", "venue": "Miami"},
+    # ROUND OF 16
+    {"id": 89,  "home": "Canada",      "away": "Morocco",    "date": "2026-07-04", "time": "13:00 ET", "group": "Round of 16", "venue": "Houston"},
+    {"id": 90,  "home": "Paraguay",    "away": "France",     "date": "2026-07-04", "time": "17:00 ET", "group": "Round of 16", "venue": "Philadelphia"},
+    {"id": 91,  "home": "Brazil",      "away": "Norway",     "date": "2026-07-05", "time": "16:00 ET", "group": "Round of 16", "venue": "East Rutherford"},
+    {"id": 92,  "home": "Mexico",      "away": "England",    "date": "2026-07-05", "time": "20:00 ET", "group": "Round of 16", "venue": "Mexico City"},
+    {"id": 93,  "home": "Portugal",    "away": "Spain",      "date": "2026-07-06", "time": "15:00 ET", "group": "Round of 16", "venue": "Arlington"},
+    {"id": 94,  "home": "USA",         "away": "Belgium",    "date": "2026-07-06", "time": "20:00 ET", "group": "Round of 16", "venue": "Seattle"},
+    {"id": 95,  "home": "Argentina",   "away": "Egypt",      "date": "2026-07-07", "time": "12:00 ET", "group": "Round of 16", "venue": "Atlanta"},
+    {"id": 96,  "home": "Switzerland", "away": "Colombia",   "date": "2026-07-07", "time": "16:00 ET", "group": "Round of 16", "venue": "Vancouver"},
+    # QUARTER FINALS
+    {"id": 97,  "home": "TBD", "away": "TBD", "date": "2026-07-09", "time": "16:00 ET", "group": "Quarter Final", "venue": "TBD"},
+    {"id": 98,  "home": "TBD", "away": "TBD", "date": "2026-07-10", "time": "15:00 ET", "group": "Quarter Final", "venue": "TBD"},
+    {"id": 99,  "home": "TBD", "away": "TBD", "date": "2026-07-11", "time": "17:00 ET", "group": "Quarter Final", "venue": "TBD"},
+    {"id": 100, "home": "TBD", "away": "TBD", "date": "2026-07-11", "time": "21:00 ET", "group": "Quarter Final", "venue": "TBD"},
+    # SEMI FINALS
+    {"id": 101, "home": "TBD", "away": "TBD", "date": "2026-07-14", "time": "15:00 ET", "group": "Semi Final", "venue": "TBD"},
+    {"id": 102, "home": "TBD", "away": "TBD", "date": "2026-07-15", "time": "15:00 ET", "group": "Semi Final", "venue": "TBD"},
+    # 3RD PLACE & FINAL
+    {"id": 103, "home": "TBD", "away": "TBD", "date": "2026-07-18", "time": "17:00 ET", "group": "3rd Place",   "venue": "Miami"},
+    {"id": 104, "home": "TBD", "away": "TBD", "date": "2026-07-19", "time": "15:00 ET", "group": "Final",       "venue": "East Rutherford"},
 ]
 
 _KICKOFF_TIMES = ["12:00 EST", "15:00 EST", "18:00 EST", "21:00 EST"]
