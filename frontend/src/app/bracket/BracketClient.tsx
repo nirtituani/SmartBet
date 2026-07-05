@@ -25,6 +25,7 @@ interface Props {
   standings: Record<string, (TeamData | null)[]>;
   thirdPlace: ThirdPlaceTeam[];
   r32Results: Record<string, R32Result>;
+  r16Results: Record<string, R32Result>;
 }
 
 // Layout constants
@@ -104,11 +105,11 @@ const SEED_PAIR_TO_ID: Record<string, number> = {
 // FIFA schedules knockout rounds alternating left/right bracket halves each match.
 // Matches 1,3,5,7 → left bracket; matches 2,4,6,8 → right bracket.
 const LEFT_SLOT_HREFS: Record<number, string[]> = {
-  1: [ // Round of 16 — left bracket slots: L0=Germany/France, L1=Canada/Morocco, L2=Portugal/Spain, L3=USA/Belgium
-    '/match-explorer#ko-round-of-16-2026-07-04-2100',
-    '/match-explorer#ko-round-of-16-2026-07-04-1700',
-    '/match-explorer#ko-round-of-16-2026-07-06-1900',
-    '/match-explorer#ko-round-of-16-2026-07-07-0000',
+  1: [ // Round of 16 — left bracket slots: L0=Paraguay/France(90), L1=Canada/Morocco(89), L2=Portugal/Spain(93), L3=USA/Belgium(94)
+    '/match/90',
+    '/match/89',
+    '/match/93',
+    '/match/94',
   ],
   2: [ // Quarter Finals — matches 1,3 go to left bracket
     '/match-explorer#ko-quarter-final-2026-07-09-2000',
@@ -120,11 +121,11 @@ const LEFT_SLOT_HREFS: Record<number, string[]> = {
 };
 
 const RIGHT_SLOT_HREFS: Record<number, string[]> = {
-  1: [ // Round of 16 — right bracket slots: R0=Brazil/Norway, R1=Mexico/England, R2=Argentina, R3=Switzerland/Colombia
-    '/match-explorer#ko-round-of-16-2026-07-05-2000',
-    '/match-explorer#ko-round-of-16-2026-07-06-0000',
-    '/match-explorer#ko-round-of-16-2026-07-07-1600',
-    '/match-explorer#ko-round-of-16-2026-07-07-2000',
+  1: [ // Round of 16 — right bracket slots: R0=Brazil/Norway(91), R1=Mexico/England(92), R2=Argentina/Egypt(95), R3=Switzerland/Colombia(96)
+    '/match/91',
+    '/match/92',
+    '/match/95',
+    '/match/96',
   ],
   2: [ // Quarter Finals — matches 2,4 go to right bracket
     '/match-explorer#ko-quarter-final-2026-07-10-1900',
@@ -366,7 +367,7 @@ function ThirdPlaceTable({ teams, lang }: { teams: ThirdPlaceTeam[]; lang: Lang 
 
 // ── Main component ──────────────────────────────────────────────────────────────
 
-export default function BracketClient({ standings, thirdPlace, r32Results }: Props) {
+export default function BracketClient({ standings, thirdPlace, r32Results, r16Results }: Props) {
   const { lang } = useLanguage();
   const l = lang as Lang;
 
@@ -405,10 +406,17 @@ export default function BracketClient({ standings, thirdPlace, r32Results }: Pro
     return { top, bottom, result: r ? { topScore: r.homeScore, bottomScore: r.awayScore, status: r.status, winner: r.winner } : undefined };
   });
 
-  const leftR16 = buildNextRound(leftR32);
+  const applyResults = (matches: BracketMatch[], results: Record<string, R32Result>): BracketMatch[] =>
+    matches.map(m => {
+      const key = m.top.team && m.bottom.team ? `${m.top.team.name}|${m.bottom.team.name}` : null;
+      const r = key ? results[key] : undefined;
+      return r ? { ...m, result: { topScore: r.homeScore, bottomScore: r.awayScore, status: r.status, winner: r.winner } } : m;
+    });
+
+  const leftR16 = applyResults(buildNextRound(leftR32), r16Results);
   const leftQF  = buildNextRound(leftR16);
   const leftSF  = buildNextRound(leftQF);
-  const rightR16 = buildNextRound(rightR32);
+  const rightR16 = applyResults(buildNextRound(rightR32), r16Results);
   const rightQF  = buildNextRound(rightR16);
   const rightSF  = buildNextRound(rightQF);
 
