@@ -206,8 +206,9 @@ const R16_CONFIRMED: { home: KOTeam; away: KOTeam }[] = [
   { home: { seed: '1B', name: 'Switzerland', flag: '🇨🇭' }, away: { seed: '1K',  name: 'Colombia',    flag: '🇨🇴' } },
 ];
 
-function KnockoutSection({ isHe, r32Scores, koScores, progressBar }: {
-  isHe: boolean; r32Scores: Record<number, Match>; koScores: Record<number, Match>; progressBar?: React.ReactNode;
+function KnockoutSection({ isHe, r32Scores, koScores, matches, lang, progressBarRef }: {
+  isHe: boolean; r32Scores: Record<number, Match>; koScores: Record<number, Match>;
+  matches: Match[]; lang: string; progressBarRef: React.RefObject<HTMLDivElement | null>;
 }) {
   // Derive R32 winners from live scores
   const r32ById: Record<number, KOFixture> = {};
@@ -236,7 +237,18 @@ function KnockoutSection({ isHe, r32Scores, koScores, progressBar }: {
 
   // Build QF team pairs — derive from R16 winners (will populate once R16 results exist)
   // r16Winners[i] = winner of R16 match i, derived from backend R16 fixture scores (future)
-  const r16Winners: (KOTeam | null)[] = Array(8).fill(null); // populated when R16 scores available
+  const r16Winners: (KOTeam | null)[] = Array(8).fill(null);
+  for (let i = 0; i < r16Fixtures.length; i++) {
+    const rf = r16Fixtures[i];
+    const m = koScores[rf.id];
+    if (!m || m.status !== 'finished' || m.score_home === null || m.score_away === null) continue;
+    const teams = r16TeamsMap[`${rf.date}-${rf.time}`];
+    if (!teams) continue;
+    if (m.score_home > m.score_away) r16Winners[i] = teams.home;
+    else if (m.score_away > m.score_home) r16Winners[i] = teams.away;
+    else if (m.winner === 'home') r16Winners[i] = teams.home;
+    else if (m.winner === 'away') r16Winners[i] = teams.away;
+  }
   const qfFixtures = LATER_FIXTURES.filter(f => f.label === 'Quarter Final');
   const qfTeamsMap: Record<string, { home: KOTeam | null; away: KOTeam | null }> = {};
   QF_FROM_R16.forEach(([homeIdx, awayIdx], i) => {
@@ -283,6 +295,16 @@ function KnockoutSection({ isHe, r32Scores, koScores, progressBar }: {
 
   // Group later fixtures by round label, preserving round order
   const roundOrder = ['Round of 16', 'Quarter Final', 'Semi Final', '3rd Place', 'Final'];
+
+  // Find the first later round that has any upcoming fixtures (for progress bar placement).
+  // If R32 still has upcoming games, the progress bar stays in the R32 section.
+  const laterProgressRound = r32Upcoming.length === 0
+    ? roundOrder.find(round =>
+        (LATER_FIXTURES.filter(f => f.label === round)).some(
+          f => koScores[f.id]?.status !== 'finished'
+        )
+      ) ?? null
+    : null;
   const roundLabelHe: Record<string, string> = {
     'Round of 16': 'שמינית גמר',
     'Quarter Final': 'רבע גמר',
@@ -352,7 +374,11 @@ function KnockoutSection({ isHe, r32Scores, koScores, progressBar }: {
         </section>
       ))}
 
-      {progressBar}
+      {r32Upcoming.length > 0 && (
+        <div ref={progressBarRef}>
+          <TournamentProgress matches={matches} lang={lang} />
+        </div>
+      )}
 
       {r32UpcomingDates.map(date => (
         <section key={date} className="explorer__date-section">
@@ -399,58 +425,78 @@ function KnockoutSection({ isHe, r32Scores, koScores, progressBar }: {
         </section>
       ))}
 
-      {/* Later rounds — TBD teams, exact times */}
+      {/* Later rounds */}
       {roundOrder.map(round => {
-        const fixtures = byRound[round] ?? [];
+        const allFixtures = byRound[round] ?? [];
         const roundSlug = round.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-        const byDateLater = fixtures.reduce<Record<string, LaterFixture[]>>((acc, f) => {
-          const idtDate = toIDTDate(f.date, f.time);
-          (acc[idtDate] ??= []).push(f);
-          return acc;
-        }, {});
-        const dates = Object.keys(byDateLater).sort();
+        const isProgressRound = round === laterProgressRound;
+
+        const finishedFx = isProgressRound
+          ? allFixtures.filter(f => koScores[f.id]?.status === 'finished')
+          : [];
+        const upcomingFx = isProgressRound
+          ? allFixtures.filter(f => koScores[f.id]?.status !== 'finished')
+          : allFixtures;
+
+        const mkByDate = (fxs: LaterFixture[]) =>
+          fxs.reduce<Record<string, LaterFixture[]>>((acc, f) => {
+            (acc[toIDTDate(f.date, f.time)] ??= []).push(f);
+            return acc;
+          }, {});
+
+        const renderCard = (f: LaterFixture, i: number) => {
+          const teams = teamsForRound[round]?.[`${f.date}-${f.time}`];
+          const homeTeam: KOTeam = teams?.home ?? { seed: 'TBD' };
+          const awayTeam: KOTeam = teams?.away ?? { seed: 'TBD' };
+          const cardAnchor = `ko-${roundSlug}-${f.date}-${f.time.replace(':', '')}`;
+          const live = koScores[f.id];
+          const fin = live?.status === 'finished';
+          const isLive = live?.status === 'live';
+          const hasScore = live && live.score_home !== null && live.score_away !== null;
+          const cardCls = `match-card glass-card${fin ? ' match-card--finished' : isLive ? ' match-card--live' : ' match-card--tbd'}`;
+          return (
+            <Link key={i} href={`/match/${f.id}`} id={cardAnchor} className={cardCls}>
+              <KOTeamSlot team={homeTeam} />
+              <div className="match-card__center">
+                {hasScore ? (
+                  <span className={`match-card__score${isLive ? ' match-card__score--live' : ''}`}>
+                    {live!.score_home} – {live!.score_away}
+                  </span>
+                ) : (
+                  <span className="match-card__kickoff match-card__kickoff--tbd">{toIDT(f.date, f.time)} IDT</span>
+                )}
+                <span className="match-card__meta">
+                  {isLive && <span className="match-card__live-dot" />}
+                  {isHe ? f.labelHe : f.label}
+                </span>
+              </div>
+              <KOTeamSlotAway team={awayTeam} />
+            </Link>
+          );
+        };
+
+        const renderDateGroup = (byDate: Record<string, LaterFixture[]>) =>
+          Object.keys(byDate).sort().map(date => (
+            <section key={date} className="explorer__date-section">
+              <div className="explorer__date-header">
+                <span className={`explorer__date-label${isHe ? ' explorer__date-label--hebrew' : ''}`} dir={isHe ? 'rtl' : undefined}>
+                  {fmtDate(date)}
+                </span>
+              </div>
+              {byDate[date].map(renderCard)}
+            </section>
+          ));
+
         return (
           <div key={round}>
             <div id={`ko-${roundSlug}`} className="ko-round-label">{isHe ? roundLabelHe[round] : round}</div>
-            {dates.map(date => (
-              <section key={date} className="explorer__date-section">
-                <div className="explorer__date-header">
-                  <span className={`explorer__date-label${isHe ? ' explorer__date-label--hebrew' : ''}`} dir={isHe ? 'rtl' : undefined}>
-                    {fmtDate(date)}
-                  </span>
-                </div>
-                {byDateLater[date].map((f, i) => {
-                  const teams = teamsForRound[round]?.[`${f.date}-${f.time}`];
-                  const homeTeam: KOTeam = teams?.home ?? { seed: 'TBD' };
-                  const awayTeam: KOTeam = teams?.away ?? { seed: 'TBD' };
-                  const cardAnchor = `ko-${roundSlug}-${f.date}-${f.time.replace(':', '')}`;
-                  const live = koScores[f.id];
-                  const finished = live?.status === 'finished';
-                  const isLive = live?.status === 'live';
-                  const hasScore = live && live.score_home !== null && live.score_away !== null;
-                  const cardCls = `match-card glass-card${finished ? ' match-card--finished' : isLive ? ' match-card--live' : ' match-card--tbd'}`;
-                  return (
-                    <Link key={i} href={`/match/${f.id}`} id={cardAnchor} className={cardCls}>
-                      <KOTeamSlot team={homeTeam} />
-                      <div className="match-card__center">
-                        {hasScore ? (
-                          <span className={`match-card__score${isLive ? ' match-card__score--live' : ''}`}>
-                            {live!.score_home} – {live!.score_away}
-                          </span>
-                        ) : (
-                          <span className="match-card__kickoff match-card__kickoff--tbd">{toIDT(f.date, f.time)} IDT</span>
-                        )}
-                        <span className="match-card__meta">
-                          {isLive && <span className="match-card__live-dot" />}
-                          {isHe ? f.labelHe : f.label}
-                        </span>
-                      </div>
-                      <KOTeamSlotAway team={awayTeam} />
-                    </Link>
-                  );
-                })}
-              </section>
-            ))}
+            {finishedFx.length > 0 && renderDateGroup(mkByDate(finishedFx))}
+            {isProgressRound && (
+              <div ref={progressBarRef}>
+                <TournamentProgress matches={matches} lang={lang} />
+              </div>
+            )}
+            {renderDateGroup(mkByDate(upcomingFx))}
           </div>
         );
       })}
@@ -464,6 +510,7 @@ export default function MatchExplorerClient({ matches: initialMatches }: { match
   const [matches, setMatches] = useState<Match[]>(initialMatches);
   const upcomingRef = useRef<HTMLDivElement>(null);
   const knockoutRef = useRef<HTMLDivElement>(null);
+  const progressBarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchUpcomingMatches().then(setMatches).catch(() => {});
@@ -486,9 +533,12 @@ export default function MatchExplorerClient({ matches: initialMatches }: { match
     }
     // R32 started June 28 — once knockout is underway, scroll there instead of group stage
     const knockoutStarted = new Date() >= new Date('2026-06-28T00:00:00Z');
-    if (knockoutStarted && knockoutRef.current) {
-      const y = knockoutRef.current.getBoundingClientRect().top + window.scrollY - 80;
-      window.scrollTo({ top: y, behavior: 'smooth' });
+    if (knockoutStarted) {
+      const target = progressBarRef.current ?? knockoutRef.current;
+      if (target) {
+        const y = target.getBoundingClientRect().top + window.scrollY - 80;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      }
     } else if (upcomingRef.current) {
       const y = upcomingRef.current.getBoundingClientRect().top + window.scrollY - 80;
       window.scrollTo({ top: y, behavior: 'smooth' });
@@ -545,13 +595,9 @@ export default function MatchExplorerClient({ matches: initialMatches }: { match
           isHe={lang === 'he'}
           r32Scores={r32Scores}
           koScores={koScores}
-          progressBar={
-            futureDates.length === 0 ? (
-              <div ref={upcomingRef}>
-                <TournamentProgress matches={matches} lang={lang} />
-              </div>
-            ) : undefined
-          }
+          matches={matches}
+          lang={lang}
+          progressBarRef={progressBarRef}
         />
       </div>
     </main>
