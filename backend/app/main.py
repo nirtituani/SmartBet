@@ -10,10 +10,6 @@ from app.api.v1.router import router as v1_router
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     from app.services.warmup import warm_cache
-    from app.services.football_api import _load_scores_from_redis
-    # Load finished scores from Redis before accepting requests (fast — just a Redis read).
-    # This prevents the scoreless window between restart and warm_cache completing.
-    await _load_scores_from_redis()
     asyncio.create_task(warm_cache())
     yield
 
