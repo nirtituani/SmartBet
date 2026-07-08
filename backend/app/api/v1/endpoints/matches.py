@@ -26,7 +26,7 @@ async def upcoming_matches():
 
 @router.get("/{fixture_id}/predictions", response_model=MatchDetail)
 async def match_predictions(fixture_id: int):
-    cache_key = f"match_detail_v4:{fixture_id}"
+    cache_key = f"match_detail_v5:{fixture_id}"
     cached = await get_cached(cache_key)
 
     if cached and 'lineup' in cached:
@@ -54,8 +54,13 @@ async def match_predictions(fixture_id: int):
     if detail is None:
         raise HTTPException(status_code=404, detail="Match not found")
 
-    # Don't spend AI on finished matches — cache them for 7 days as-is
+    # Finished match: preserve any pre-match prediction that was already cached
     if detail.match.status == "finished":
+        existing = await get_cached(cache_key)
+        if existing and existing.get("prediction"):
+            existing["match"] = detail.match.model_dump()
+            await set_cached(cache_key, existing, ttl=7 * 24 * 3600)
+            return MatchDetail(**existing)
         await set_cached(cache_key, detail.model_dump(), ttl=7 * 24 * 3600)
         return detail
 

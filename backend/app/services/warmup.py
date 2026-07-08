@@ -21,7 +21,7 @@ async def _compute_match(fixture_id: int, ttl: int, force: bool = False) -> None
         logger.warning("[warmup] daily limit $%.2f reached, skipping fixture %d", DAILY_LIMIT_USD, fixture_id)
         return
 
-    cache_key = f"match_detail_v4:{fixture_id}"
+    cache_key = f"match_detail_v5:{fixture_id}"
     if not force:
         cached = await get_cached(cache_key)
         if cached and cached.get("lineup") and cached.get("prediction_updated_at"):
@@ -34,10 +34,15 @@ async def _compute_match(fixture_id: int, ttl: int, force: bool = False) -> None
         if detail is None:
             logger.warning("[warmup] no detail for fixture %d", fixture_id)
             return
-        # Don't spend AI on finished matches — cache as-is for 7 days
+        # Finished match: preserve any pre-match prediction that was cached before the game ended
         if detail.match.status == "finished":
-            await set_cached(cache_key, detail.model_dump(), ttl=7 * 24 * 3600)
-            logger.info("[warmup] fixture %d already finished, cached without AI", fixture_id)
+            existing = await get_cached(cache_key)
+            if existing and existing.get("prediction"):
+                existing["match"] = detail.match.model_dump()
+                await set_cached(cache_key, existing, ttl=7 * 24 * 3600)
+            else:
+                await set_cached(cache_key, detail.model_dump(), ttl=7 * 24 * 3600)
+            logger.info("[warmup] fixture %d finished, cached (prediction preserved: %s)", fixture_id, bool(existing and existing.get("prediction")))
             return
         detail.prediction = await get_prediction(
             detail.match, detail.home_form, detail.away_form, detail.h2h, detail.odds_comparison
@@ -83,7 +88,7 @@ async def full_warmup() -> None:
 
     uncached = []
     for m in window:
-        c = await get_cached(f"match_detail_v4:{m.id}") or {}
+        c = await get_cached(f"match_detail_v5:{m.id}") or {}
         if not c.get("lineup") or not c.get("prediction_updated_at"):
             uncached.append(m)
 
@@ -132,7 +137,7 @@ async def daily_refresh() -> None:
     threshold = _FRESH_THRESHOLD_HOURS * 3600
     now = datetime.now(timezone.utc).timestamp()
     for m in candidates:
-        cached = await get_cached(f"match_detail_v4:{m.id}") or {}
+        cached = await get_cached(f"match_detail_v5:{m.id}") or {}
         updated_at = cached.get("prediction_updated_at")
         if updated_at:
             try:
