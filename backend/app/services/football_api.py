@@ -167,10 +167,10 @@ _WC26_FIXTURES: list[dict] = [
     {"id": 95,  "home": "Argentina",   "away": "Egypt",      "date": "2026-07-07", "time": "12:00 ET", "group": "Round of 16", "venue": "Atlanta"},
     {"id": 96,  "home": "Switzerland", "away": "Colombia",   "date": "2026-07-07", "time": "16:00 ET", "group": "Round of 16", "venue": "Vancouver"},
     # QUARTER FINALS
-    {"id": 97,  "home": "TBD", "away": "TBD", "date": "2026-07-09", "time": "16:00 ET", "group": "Quarter Final", "venue": "TBD"},
-    {"id": 98,  "home": "TBD", "away": "TBD", "date": "2026-07-10", "time": "15:00 ET", "group": "Quarter Final", "venue": "TBD"},
-    {"id": 99,  "home": "TBD", "away": "TBD", "date": "2026-07-11", "time": "17:00 ET", "group": "Quarter Final", "venue": "TBD"},
-    {"id": 100, "home": "TBD", "away": "TBD", "date": "2026-07-11", "time": "21:00 ET", "group": "Quarter Final", "venue": "TBD"},
+    {"id": 97,  "home": "France",    "away": "Morocco",     "date": "2026-07-09", "time": "16:00 ET", "group": "Quarter Final", "venue": "Foxborough"},
+    {"id": 98,  "home": "Norway",    "away": "England",     "date": "2026-07-10", "time": "15:00 ET", "group": "Quarter Final", "venue": "Miami"},
+    {"id": 99,  "home": "Spain",     "away": "Belgium",     "date": "2026-07-11", "time": "17:00 ET", "group": "Quarter Final", "venue": "Los Angeles"},
+    {"id": 100, "home": "Argentina", "away": "Switzerland", "date": "2026-07-11", "time": "21:00 ET", "group": "Quarter Final", "venue": "Kansas City"},
     # SEMI FINALS
     {"id": 101, "home": "TBD", "away": "TBD", "date": "2026-07-14", "time": "15:00 ET", "group": "Semi Final", "venue": "TBD"},
     {"id": 102, "home": "TBD", "away": "TBD", "date": "2026-07-15", "time": "15:00 ET", "group": "Semi Final", "venue": "TBD"},

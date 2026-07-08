@@ -194,6 +194,14 @@ const SF_FROM_QF: [number, number][] = [
   [1, 3], // 07-15 19:00 — QF[1] winner vs QF[3] winner (right SF)
 ];
 
+// Confirmed QF teams in QF_FROM_R16 order (all R16 results are in)
+const QF_CONFIRMED: { home: KOTeam; away: KOTeam }[] = [
+  { home: { seed: '1I',  name: 'France',      flag: '🇫🇷' }, away: { seed: '2C',  name: 'Morocco',     flag: '🇲🇦' } },
+  { home: { seed: '2I',  name: 'Norway',      flag: '🇳🇴' }, away: { seed: '1L',  name: 'England',     flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' } },
+  { home: { seed: '1H',  name: 'Spain',       flag: '🇪🇸' }, away: { seed: '1G',  name: 'Belgium',     flag: '🇧🇪' } },
+  { home: { seed: '1J',  name: 'Argentina',   flag: '🇦🇷' }, away: { seed: '1B',  name: 'Switzerland', flag: '🇨🇭' } },
+];
+
 // Confirmed R16 teams in R16_PAIRINGS order (all R32 results are in)
 const R16_CONFIRMED: { home: KOTeam; away: KOTeam }[] = [
   { home: { seed: '2A', name: 'Canada',      flag: '🇨🇦' }, away: { seed: '2C',  name: 'Morocco',     flag: '🇲🇦' } },
@@ -253,7 +261,8 @@ function KnockoutSection({ isHe, r32Scores, koScores, matches, lang, progressBar
   const qfTeamsMap: Record<string, { home: KOTeam | null; away: KOTeam | null }> = {};
   QF_FROM_R16.forEach(([homeIdx, awayIdx], i) => {
     const f = qfFixtures[i];
-    if (f) qfTeamsMap[`${f.date}-${f.time}`] = { home: r16Winners[homeIdx], away: r16Winners[awayIdx] };
+    const confirmed = QF_CONFIRMED[i];
+    if (f) qfTeamsMap[`${f.date}-${f.time}`] = confirmed ?? { home: r16Winners[homeIdx], away: r16Winners[awayIdx] };
   });
 
   // Build SF team pairs — derive from QF winners (future)
