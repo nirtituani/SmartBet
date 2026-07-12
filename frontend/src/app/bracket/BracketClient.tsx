@@ -26,6 +26,7 @@ interface Props {
   thirdPlace: ThirdPlaceTeam[];
   r32Results: Record<string, R32Result>;
   r16Results: Record<string, R32Result>;
+  qfResults: Record<string, R32Result>;
 }
 
 // Layout constants
@@ -367,7 +368,7 @@ function ThirdPlaceTable({ teams, lang }: { teams: ThirdPlaceTeam[]; lang: Lang 
 
 // ── Main component ──────────────────────────────────────────────────────────────
 
-export default function BracketClient({ standings, thirdPlace, r32Results, r16Results }: Props) {
+export default function BracketClient({ standings, thirdPlace, r32Results, r16Results, qfResults }: Props) {
   const { lang } = useLanguage();
   const l = lang as Lang;
 
@@ -414,10 +415,10 @@ export default function BracketClient({ standings, thirdPlace, r32Results, r16Re
     });
 
   const leftR16 = applyResults(buildNextRound(leftR32), r16Results);
-  const leftQF  = buildNextRound(leftR16);
+  const leftQF  = applyResults(buildNextRound(leftR16), qfResults);
   const leftSF  = buildNextRound(leftQF);
   const rightR16 = applyResults(buildNextRound(rightR32), r16Results);
-  const rightQF  = buildNextRound(rightR16);
+  const rightQF  = applyResults(buildNextRound(rightR16), qfResults);
   const rightSF  = buildNextRound(rightQF);
 
   const leftRounds  = [leftR32,  leftR16,  leftQF,  leftSF];
