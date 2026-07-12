@@ -194,6 +194,12 @@ const SF_FROM_QF: [number, number][] = [
   [1, 3], // 07-15 19:00 — QF[1] winner vs QF[3] winner (right SF)
 ];
 
+// Confirmed SF teams in SF_FROM_QF order (all QF results are in)
+const SF_CONFIRMED: { home: KOTeam; away: KOTeam }[] = [
+  { home: { seed: '1I', name: 'France',    flag: '🇫🇷' }, away: { seed: '1H', name: 'Spain',     flag: '🇪🇸' } },
+  { home: { seed: '1L', name: 'England',   flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' }, away: { seed: '1J', name: 'Argentina', flag: '🇦🇷' } },
+];
+
 // Confirmed QF teams in QF_FROM_R16 order (all R16 results are in)
 const QF_CONFIRMED: { home: KOTeam; away: KOTeam }[] = [
   { home: { seed: '1I',  name: 'France',      flag: '🇫🇷' }, away: { seed: '2C',  name: 'Morocco',     flag: '🇲🇦' } },
@@ -265,13 +271,26 @@ function KnockoutSection({ isHe, r32Scores, koScores, matches, lang, progressBar
     if (f) qfTeamsMap[`${f.date}-${f.time}`] = confirmed ?? { home: r16Winners[homeIdx], away: r16Winners[awayIdx] };
   });
 
-  // Build SF team pairs — derive from QF winners (future)
+  // Populate qfWinners from koScores for SF team display
   const qfWinners: (KOTeam | null)[] = Array(4).fill(null);
+  for (let i = 0; i < qfFixtures.length; i++) {
+    const f = qfFixtures[i];
+    const m = koScores[f.id];
+    if (!m || m.status !== 'finished' || m.score_home === null || m.score_away === null) continue;
+    const teams = qfTeamsMap[`${f.date}-${f.time}`];
+    if (!teams) continue;
+    if (m.score_home > m.score_away) qfWinners[i] = teams.home;
+    else if (m.score_away > m.score_home) qfWinners[i] = teams.away;
+    else if (m.winner === 'home') qfWinners[i] = teams.home;
+    else if (m.winner === 'away') qfWinners[i] = teams.away;
+  }
+
   const sfFixtures = LATER_FIXTURES.filter(f => f.label === 'Semi Final');
   const sfTeamsMap: Record<string, { home: KOTeam | null; away: KOTeam | null }> = {};
   SF_FROM_QF.forEach(([homeIdx, awayIdx], i) => {
     const f = sfFixtures[i];
-    if (f) sfTeamsMap[`${f.date}-${f.time}`] = { home: qfWinners[homeIdx], away: qfWinners[awayIdx] };
+    const confirmed = SF_CONFIRMED[i];
+    if (f) sfTeamsMap[`${f.date}-${f.time}`] = confirmed ?? { home: qfWinners[homeIdx], away: qfWinners[awayIdx] };
   });
 
   const teamsForRound: Record<string, Record<string, { home: KOTeam | null; away: KOTeam | null }>> = {

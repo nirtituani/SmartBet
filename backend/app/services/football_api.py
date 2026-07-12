@@ -172,8 +172,8 @@ _WC26_FIXTURES: list[dict] = [
     {"id": 99,  "home": "Spain",     "away": "Belgium",     "date": "2026-07-11", "time": "17:00 ET", "group": "Quarter Final", "venue": "Los Angeles"},
     {"id": 100, "home": "Argentina", "away": "Switzerland", "date": "2026-07-11", "time": "21:00 ET", "group": "Quarter Final", "venue": "Kansas City"},
     # SEMI FINALS
-    {"id": 101, "home": "TBD", "away": "TBD", "date": "2026-07-14", "time": "15:00 ET", "group": "Semi Final", "venue": "TBD"},
-    {"id": 102, "home": "TBD", "away": "TBD", "date": "2026-07-15", "time": "15:00 ET", "group": "Semi Final", "venue": "TBD"},
+    {"id": 101, "home": "France",  "away": "Spain",     "date": "2026-07-14", "time": "15:00 ET", "group": "Semi Final", "venue": "Dallas"},
+    {"id": 102, "home": "England", "away": "Argentina", "date": "2026-07-15", "time": "15:00 ET", "group": "Semi Final", "venue": "Atlanta"},
     # 3RD PLACE & FINAL
     {"id": 103, "home": "TBD", "away": "TBD", "date": "2026-07-18", "time": "17:00 ET", "group": "3rd Place",   "venue": "Miami"},
     {"id": 104, "home": "TBD", "away": "TBD", "date": "2026-07-19", "time": "15:00 ET", "group": "Final",       "venue": "East Rutherford"},
