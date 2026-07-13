@@ -3,8 +3,8 @@ from datetime import date
 
 from app.core.cache import _redis
 
-DAILY_LIMIT_USD = 1.20   # enough for one full matchday (up to 10 matches at $0.12 each)
-COST_PER_MATCH = 0.12    # realistic estimate: 2x Sonnet + 3x Haiku per match
+DAILY_LIMIT_USD = 1.20   # enough for one full matchday
+COST_PER_MATCH = 0.04    # 1x Sonnet prediction call only (form/H2H/lineup use non-AI fetchers)
 
 _mem_spend: dict[str, float] = {}
 

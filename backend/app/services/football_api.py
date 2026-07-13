@@ -1483,7 +1483,6 @@ async def get_match_detail(fixture_id: int) -> MatchDetail | None:
         return None
 
     if not settings.football_api_key or match.home_team.api_id == 0:
-        from app.services.ai_service import get_team_form_web, get_h2h_web, get_lineup
         from app.core.cache import get_cached, set_cached
 
         home_name = match.home_team.name
@@ -1496,24 +1495,18 @@ async def get_match_detail(fixture_id: int) -> MatchDetail | None:
 
         if home_form_cached is None:
             result = await _fetch_team_form_espn(home_name)
-            if not result:
-                result = await get_team_form_web(home_name)
             home_form_cached = [r.model_dump() for r in result] if result else None
             if home_form_cached:
                 await set_cached(f"form:{home_name}", home_form_cached, ttl=_form_ttl(home_name))
 
         if away_form_cached is None:
             result = await _fetch_team_form_espn(away_name)
-            if not result:
-                result = await get_team_form_web(away_name)
             away_form_cached = [r.model_dump() for r in result] if result else None
             if away_form_cached:
                 await set_cached(f"form:{away_name}", away_form_cached, ttl=_form_ttl(away_name))
 
         if h2h_cached is None:
             result = await _fetch_h2h_csv(home_name, away_name)
-            if result is None:
-                result = await get_h2h_web(home_name, away_name)
             h2h_cached = [r.model_dump() for r in result] if result is not None else None
             if h2h_cached is not None:
                 await set_cached(h2h_key, h2h_cached, ttl=_H2H_TTL)
@@ -1521,17 +1514,12 @@ async def get_match_detail(fixture_id: int) -> MatchDetail | None:
         lineup_key = f"lineup_v2:{fixture_id}"
         lineup_raw = await get_cached(lineup_key)
 
-        # If cached lineup is predicted (not confirmed), try SofaScore for real lineup
+        # Only try SofaScore for confirmed lineup (no AI fallback)
         if lineup_raw is None or lineup_raw.get("is_predicted", True):
             sofascore_lineup = await _fetch_sofascore_lineup(home_name, away_name, match.kickoff_date)
             if sofascore_lineup:
                 lineup_raw = sofascore_lineup.model_dump()
-                await set_cached(lineup_key, lineup_raw, ttl=7200)  # 2h — re-check closer to kickoff
-            elif lineup_raw is None:
-                lineup_obj = await get_lineup(home_name, away_name)
-                if lineup_obj:
-                    lineup_raw = lineup_obj.model_dump()
-                    await set_cached(lineup_key, lineup_raw, ttl=_form_ttl(home_name))
+                await set_cached(lineup_key, lineup_raw, ttl=7200)
 
         home_form = [FormResult(**r) for r in home_form_cached] if home_form_cached else _mock_form(match.home_team)
         away_form = [FormResult(**r) for r in away_form_cached] if away_form_cached else _mock_form(match.away_team)
