@@ -27,6 +27,7 @@ interface Props {
   r32Results: Record<string, R32Result>;
   r16Results: Record<string, R32Result>;
   qfResults: Record<string, R32Result>;
+  sfResults: Record<string, R32Result>;
 }
 
 // Layout constants
@@ -368,7 +369,7 @@ function ThirdPlaceTable({ teams, lang }: { teams: ThirdPlaceTeam[]; lang: Lang 
 
 // ── Main component ──────────────────────────────────────────────────────────────
 
-export default function BracketClient({ standings, thirdPlace, r32Results, r16Results, qfResults }: Props) {
+export default function BracketClient({ standings, thirdPlace, r32Results, r16Results, qfResults, sfResults }: Props) {
   const { lang } = useLanguage();
   const l = lang as Lang;
 
@@ -416,10 +417,11 @@ export default function BracketClient({ standings, thirdPlace, r32Results, r16Re
 
   const leftR16 = applyResults(buildNextRound(leftR32), r16Results);
   const leftQF  = applyResults(buildNextRound(leftR16), qfResults);
-  const leftSF  = buildNextRound(leftQF);
+  const leftSF  = applyResults(buildNextRound(leftQF), sfResults);
   const rightR16 = applyResults(buildNextRound(rightR32), r16Results);
   const rightQF  = applyResults(buildNextRound(rightR16), qfResults);
-  const rightSF  = buildNextRound(rightQF);
+  const rightSF  = applyResults(buildNextRound(rightQF), sfResults);
+  const finalMatch = buildNextRound([leftSF[0], rightSF[0]])[0];
 
   const leftRounds  = [leftR32,  leftR16,  leftQF,  leftSF];
   const rightRounds = [rightR32, rightR16, rightQF, rightSF];
@@ -460,7 +462,7 @@ export default function BracketClient({ standings, thirdPlace, r32Results, r16Re
               {isHe ? 'גמר' : 'Final'}
             </div>
             <div style={{ width: CARD_W, height: TOTAL_H, position: 'relative' }}>
-              <MatchCard m={TBD} centerY={TOTAL_H / 2} lang={l} href="/match-explorer#ko-final" />
+              <MatchCard m={finalMatch ?? TBD} centerY={TOTAL_H / 2} lang={l} href="/match/104" />
             </div>
           </div>
           <FinalConnector flip />

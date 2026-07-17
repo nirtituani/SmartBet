@@ -175,8 +175,8 @@ _WC26_FIXTURES: list[dict] = [
     {"id": 101, "home": "France",  "away": "Spain",     "date": "2026-07-14", "time": "15:00 ET", "group": "Semi Final", "venue": "Dallas"},
     {"id": 102, "home": "England", "away": "Argentina", "date": "2026-07-15", "time": "15:00 ET", "group": "Semi Final", "venue": "Atlanta"},
     # 3RD PLACE & FINAL
-    {"id": 103, "home": "TBD", "away": "TBD", "date": "2026-07-18", "time": "17:00 ET", "group": "3rd Place",   "venue": "Miami"},
-    {"id": 104, "home": "TBD", "away": "TBD", "date": "2026-07-19", "time": "15:00 ET", "group": "Final",       "venue": "East Rutherford"},
+    {"id": 103, "home": "France",    "away": "England",   "date": "2026-07-18", "time": "17:00 ET", "group": "3rd Place", "venue": "Miami"},
+    {"id": 104, "home": "Spain",     "away": "Argentina", "date": "2026-07-19", "time": "15:00 ET", "group": "Final",     "venue": "East Rutherford"},
 ]
 
 _KICKOFF_TIMES = ["12:00 EST", "15:00 EST", "18:00 EST", "21:00 EST"]

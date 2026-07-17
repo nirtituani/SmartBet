@@ -32,18 +32,20 @@ export default async function BracketPage() {
   const r32Results: Record<string, R32Result> = {};
   const r16Results: Record<string, R32Result> = {};
   const qfResults:  Record<string, R32Result> = {};
+  const sfResults:  Record<string, R32Result> = {};
   for (const m of matchesRaw) {
     const entry = { homeScore: m.score_home, awayScore: m.score_away, status: m.status, winner: m.winner ?? null };
     const key = `${m.home_team.name}|${m.away_team.name}`;
     if (m.group === 'Round of 32')    r32Results[key] = entry;
     if (m.group === 'Round of 16')    r16Results[key] = entry;
     if (m.group === 'Quarter Final')  qfResults[key]  = entry;
+    if (m.group === 'Semi Final')     sfResults[key]  = entry;
   }
 
   return (
     <>
       <Header />
-      <BracketClient standings={standings} thirdPlace={thirdPlace} r32Results={r32Results} r16Results={r16Results} qfResults={qfResults} />
+      <BracketClient standings={standings} thirdPlace={thirdPlace} r32Results={r32Results} r16Results={r16Results} qfResults={qfResults} sfResults={sfResults} />
     </>
   );
 }

@@ -200,6 +200,16 @@ const SF_CONFIRMED: { home: KOTeam; away: KOTeam }[] = [
   { home: { seed: '1L', name: 'England',   flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' }, away: { seed: '1J', name: 'Argentina', flag: '🇦🇷' } },
 ];
 
+// Confirmed 3rd Place / Final teams (all SF results are in: Spain won SF1, Argentina won SF2)
+const THIRD_CONFIRMED: { home: KOTeam; away: KOTeam } = {
+  home: { seed: '2SF1', name: 'France',    flag: '🇫🇷' },
+  away: { seed: '2SF2', name: 'England',   flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
+};
+const FINAL_CONFIRMED: { home: KOTeam; away: KOTeam } = {
+  home: { seed: '1SF1', name: 'Spain',     flag: '🇪🇸' },
+  away: { seed: '1SF2', name: 'Argentina', flag: '🇦🇷' },
+};
+
 // Confirmed QF teams in QF_FROM_R16 order (all R16 results are in)
 const QF_CONFIRMED: { home: KOTeam; away: KOTeam }[] = [
   { home: { seed: '1I',  name: 'France',      flag: '🇫🇷' }, away: { seed: '2C',  name: 'Morocco',     flag: '🇲🇦' } },
@@ -293,10 +303,43 @@ function KnockoutSection({ isHe, r32Scores, koScores, matches, lang, progressBar
     if (f) sfTeamsMap[`${f.date}-${f.time}`] = confirmed ?? { home: qfWinners[homeIdx], away: qfWinners[awayIdx] };
   });
 
+  // Derive SF winners/losers to populate 3rd Place and Final
+  const sfWinners: (KOTeam | null)[] = Array(2).fill(null);
+  const sfLosers:  (KOTeam | null)[] = Array(2).fill(null);
+  for (let i = 0; i < sfFixtures.length; i++) {
+    const f = sfFixtures[i];
+    const m = koScores[f.id];
+    if (!m || m.status !== 'finished' || m.score_home === null || m.score_away === null) continue;
+    const teams = sfTeamsMap[`${f.date}-${f.time}`];
+    if (!teams) continue;
+    let winner: KOTeam | null = null, loser: KOTeam | null = null;
+    if (m.score_home > m.score_away)      { winner = teams.home; loser = teams.away; }
+    else if (m.score_away > m.score_home) { winner = teams.away; loser = teams.home; }
+    else if (m.winner === 'home')         { winner = teams.home; loser = teams.away; }
+    else if (m.winner === 'away')         { winner = teams.away; loser = teams.home; }
+    sfWinners[i] = winner; sfLosers[i] = loser;
+  }
+
+  const thirdFixtures = LATER_FIXTURES.filter(f => f.label === '3rd Place');
+  const thirdTeamsMap: Record<string, { home: KOTeam | null; away: KOTeam | null }> = {};
+  if (thirdFixtures[0]) {
+    const f = thirdFixtures[0];
+    thirdTeamsMap[`${f.date}-${f.time}`] = THIRD_CONFIRMED ?? { home: sfLosers[0], away: sfLosers[1] };
+  }
+
+  const finalFixtures = LATER_FIXTURES.filter(f => f.label === 'Final');
+  const finalTeamsMap: Record<string, { home: KOTeam | null; away: KOTeam | null }> = {};
+  if (finalFixtures[0]) {
+    const f = finalFixtures[0];
+    finalTeamsMap[`${f.date}-${f.time}`] = FINAL_CONFIRMED ?? { home: sfWinners[0], away: sfWinners[1] };
+  }
+
   const teamsForRound: Record<string, Record<string, { home: KOTeam | null; away: KOTeam | null }>> = {
     'Round of 16':  r16TeamsMap,
     'Quarter Final': qfTeamsMap,
     'Semi Final':   sfTeamsMap,
+    '3rd Place':    thirdTeamsMap,
+    'Final':        finalTeamsMap,
   };
 
   // Split R32 fixtures by status first, then group each set by IDT date.
